@@ -6,14 +6,27 @@
     <strong>Robust, Intensity-Invariant Motion Correction for Time-Lapse Microscopy</strong>
   </p>
 
-  <p>
+  <p align="center">
     <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
       <img src="https://img.shields.io/badge/release-v1.0.0-blue.svg" alt="Release">
-    </a>
-    <a href="https://opensource.org/licenses/MIT">
-      <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+    </a>    
+    <a href="https://doi.org/10.5281/zenodo.18206931">
+      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18206931.svg" alt="DOI">
     </a>
     <img src="https://img.shields.io/badge/platform-ImageJ%20%2F%20Fiji-red.svg" alt="Platform">
+    <a href="https://opensource.org/licenses/MIT">
+      <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+    </a>    
+    <br> <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Repo Size">
+    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/commits/main">
+      <img src="https://img.shields.io/github/last-commit/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Last Commit">
+    </a>
+    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
+      <img src="https://img.shields.io/github/downloads/Epivitae/FIA-Fluorescence-Image-Aligner/total" alt="Downloads">
+    </a>    
+    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/stargazers">
+      <img src="https://img.shields.io/github/stars/Epivitae/FIA-Fluorescence-Image-Aligner?style=social" alt="GitHub Stars">
+    </a>
   </p>
 </div>
 
