@@ -1,0 +1,39 @@
+{
+  "title": "FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji",
+  "description": "<p><strong>FIA (Fluorescence Image Aligner)</strong> is a professional ImageJ/Fiji plugin designed to correct motion artifacts (drift, jitter, rotation) in time-lapse fluorescence microscopy data. Unlike conventional center-of-mass methods, FIA utilizes the <strong>OpenCV ECC (Enhanced Correlation Coefficient)</strong> algorithm, making it highly robust against fluctuating signals common in functional imaging (e.g., calcium/voltage imaging).</p><p><strong>v1.0.0 Initial Release:</strong> This version introduces a fully non-destructive workflow and a modern Swing-based controller, providing precise sub-pixel registration without altering original raw data.</p><p><strong>Key Features:</strong></p><ul><li><strong>🛡️ Non-Destructive Workflow:</strong> Prioritizes data integrity by generating a new aligned stack (<code>FIA-Result</code>) instead of modifying the input file, ensuring the raw data remains untouched.</li><li><strong>🧠 Intensity-Invariant Algorithm:</strong> Uses the ECC metric to align images based on correlation rather than simple intensity features, ensuring stable registration even when neurons flash on and off.</li><li><strong>🚀 Warm Start Strategy:</strong> Implements a smart state-tracking mechanism where the transformation matrix of the previous frame serves as the initial guess for the next, preventing alignment loss during rapid movement.</li><li><strong>🌈 Smart Multi-Channel Support:</strong> Automatically detects the channel with the best signal-to-noise ratio (highest mean intensity) to calculate the motion vector, then applies the correction to all channels synchronously.</li><li><strong>📊 Quantitative Output:</strong> Offers an option to export the precise geometric transformation matrix to a <code>.csv</code> file for post-hoc trajectory analysis.</li></ul>",
+  "creators": [
+    {
+      "name": "Wang, Kui",
+      "affiliation": "Center for Excellence in Brain Science and Intelligence Technology (Institute of Neuroscience), Chinese Academy of Sciences",
+      "orcid": "0000-0002-9436-3632"
+    }
+  ],
+  "access_right": "open",
+  "license": "MIT",
+  "keywords": [
+    "imagej",
+    "fiji",
+    "imagej-plugin",
+    "java",
+    "swing-gui",
+    "scientific-software",
+    "bioimage-analysis",
+    "image-registration",
+    "motion-correction",
+    "image-alignment",
+    "opencv",
+    "ecc-algorithm",
+    "fluorescence-microscopy",
+    "calcium-imaging",
+    "time-lapse",
+    "drift-correction",
+    "stack-alignment"
+  ],
+  "upload_type": "software",
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner"
+    }
+  ]
+}
