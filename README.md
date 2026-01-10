@@ -1,72 +1,96 @@
-# FIA: Fluorescence Image Aligner
+<div align="center">
+  <img src="src/main/resources/FIA.png" alt="FIA Logo" width="120">
+  <h1>FIA: Fluorescence Image Aligner</h1>
+  
+  <p>
+    <strong>Robust, Intensity-Invariant Motion Correction for Time-Lapse Microscopy</strong>
+  </p>
 
-[![GitHub release (latest by date)](https://img.shields.io/github/v/release/Epivitae/FIA-Fluorescence-Image-Aligner?color=blue&label=Latest%20Version)](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases)
-[![GitHub all releases](https://img.shields.io/github/downloads/Epivitae/FIA-Fluorescence-Image-Aligner/total?color=success&label=Downloads)](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases)
-[![GitHub repo size](https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner?color=orange)](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner)
-
-[![Language](https://img.shields.io/badge/Language-Java-b07219.svg)](https://www.java.com/)
-[![Build System](https://img.shields.io/badge/Build-Maven-C71A36?logo=apachemaven&logoColor=white)](https://maven.apache.org/)
-[![Platform](https://img.shields.io/badge/Platform-ImageJ%2FFiji-1b2a4e?logo=imagej)](https://imagej.net/)
-[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/graphs/commit-activity)
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![GitHub stars](https://img.shields.io/github/stars/Epivitae/FIA-Fluorescence-Image-Aligner?style=social)](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/stargazers)
-
----
-
-**FIA (Fluorescence Image Aligner)** is an ImageJ/Fiji plugin designed for **intensity-invariant registration** of time-lapse microscopy data. 
-
-Unlike standard registration tools (e.g., StackReg) based on minimizing Mean Square Error (MSE), FIA uses **OpenCV's Enhanced Correlation Coefficient (ECC)** algorithm. This makes it robust against:
-* **Fluctuating signals** (e.g., Calcium imaging, Voltage imaging, flashing sensors).
-* **Photobleaching** or unstable illumination.
-* **Low signal-to-noise ratio** conditions.
+  <p>
+    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
+      <img src="https://img.shields.io/badge/release-v1.0.0-blue.svg" alt="Release">
+    </a>
+    <a href="https://opensource.org/licenses/MIT">
+      <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
+    </a>
+    <img src="https://img.shields.io/badge/platform-ImageJ%20%2F%20Fiji-red.svg" alt="Platform">
+  </p>
+</div>
 
 ---
 
-## 🚀 Why FIA?
+## 📖 Overview
 
-| Feature | StackReg / TurboReg | FIA (This Plugin) |
-| :--- | :--- | :--- |
-| **Core Algorithm** | Minimization of MSE | Maximization of Correlation (ECC) |
-| **Best For** | Structural imaging (fixed brightness) | **Functional imaging** (fluctuating brightness) |
-| **Flashing Neurons** | May cause artifacts (warping) | **Stable** (ignores brightness changes) |
-| **Transformations** | Rigid, Affine, Projective | Euclidean, Affine, Homography |
+**FIA (Fluorescence Image Aligner)** is a lightweight ImageJ/Fiji plugin designed to correct motion artifacts (drift, jitter, rotation) in time-lapse fluorescence microscopy data.
 
-## 🛠 Installation
+Unlike conventional center-of-mass registration, FIA utilizes the **OpenCV ECC (Enhanced Correlation Coefficient)** algorithm. This makes it highly robust against **fluctuating fluorescence signals**, such as those seen in:
+* Calcium Imaging (GCaMP)
+* Voltage Imaging
+* Bioluminescence recordings
 
-1.  **Install Fiji**: Download and install [Fiji](https://imagej.net/software/fiji/).
-2.  **Enable IJ-OpenCV**:
-    * Open Fiji.
-    * Go to `Help > Update...`.
-    * Click `Manage Update Sites`.
-    * Check **IJ-OpenCV**.
-    * Click `Close` and then `Apply changes`.
-3.  **Install FIA**:
-    * Download the latest `.jar` from the [Releases](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases) page.
-    * Drag and drop the file into Fiji's `plugins` folder.
-    * Restart Fiji.
+FIA employs a **non-destructive** workflow, ensuring your raw data is never overwritten.
 
-## 📖 Usage
+## ✨ Key Features
 
-1.  Open your time-lapse stack in Fiji.
-2.  Go to `Plugins > FIA > Fluorescence Image Aligner`.
-3.  **Select Parameters**:
-    * **Transformation**: *Euclidean* (Rotation + Translation) is recommended for most biological samples.
-    * **Reference**: Choose *Average Intensity Projection* for the best stability in calcium imaging.
-4.  Click **OK**.
+* **🛡️ Non-Destructive**: Always generates a new aligned stack (`FIA-[Filename]`), preserving your original data.
+* **🧠 Intensity Invariant**: Accurately aligns images even when neurons flash on and off.
+* **🚀 Warm Start Strategy**: Uses the transformation matrix from the previous frame as the initial guess for the next, preventing alignment loss in long recordings.
+* **🌈 Multi-Channel Support**: Automatically detects the channel with the best signal-to-noise ratio (highest mean intensity) as the reference, and applies the correction to all channels.
+* **📊 Quantitative Output**: Option to save the precise transformation matrix (`.csv`) for post-hoc analysis.
 
-## 🤝 Contributing
+## 📥 Installation
 
-We welcome contributions! Please see [CONTRIBUTING.md](CONTRIBUTING.md) for details.
+1.  Download the latest **`FIA-1.0.0.jar`** from the [Releases Page](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases).
+2.  Drag and drop the `.jar` file into your **Fiji** main window (or copy it to the `Fiji.app/plugins/` folder).
+3.  **Restart Fiji**.
 
-## 📄 License
+You will see the plugin under **Plugins > FIA > FIA Image Aligner**.
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+## 🎮 Usage Guide
 
-## 📚 Citation
+### 1. Launch
+Open your time-lapse stack (T-series) in Fiji, then run **Plugins > FIA > FIA Image Aligner**.
 
-If you use FIA in your research, please cite:
-> Wang, K. (2026). FIA: Intensity-invariant registration for functional imaging. GitHub repository.
+### 2. Controller Settings
 
----
-*Developed by Dr. Kui Wang, ION, CAS.*
+<p align="center">
+  <img src="images/FIA-main.png" alt="FIA Controller" width="200">
+</p>
+
+* **Transform Mode**:
+    * **Translation**: Corrects x, y shifts only. Fastest, suitable for mechanical stage drift.
+    * **Rigid (Recommended)**: Corrects x, y shifts + Rotation. Best for most biological samples (e.g., awake zebrafish/mice).
+    * **Affine**: Adds Shear/Scale correction. Use only if tissue deformation is suspected.
+    * *Tip: Click the **Help** button in the UI for details.*
+* **Max Iterations**: (Default: 100) Maximum ECC iterations per frame. Increase if alignment fails.
+* **Precision ($10^{-x}$)**: (Default: 5) Convergence threshold ($10^{-5}$).
+* **Verbose Log**: Prints detailed convergence info to the Console.
+* **Save Matrix (.csv)**: If checked, prompts to save the geometric transformation matrix after the run.
+
+### 3. Result
+Click **Run Alignment**. 
+* A progress bar will show the status.
+* Upon completion, a **new window** will open with the aligned stack.
+* The raw data window remains untouched.
+
+## ⚙️ Algorithm Details
+
+FIA implements the parametric image alignment algorithm using the Enhanced Correlation Coefficient (ECC) maximization (Evangelidis & Psarakis, 2008). 
+
+1.  **Reference Selection**: The first frame of the brightest channel is used as the anchor template.
+2.  **Preprocessing**: Images are converted to `Float32` for sub-pixel precision.
+3.  **Iterative Optimization**: The algorithm maximizes the correlation coefficient between the template and the warped current frame.
+4.  **Warm Start**: $Matrix_{t}$ is initialized using $Matrix_{t-1}$. This ensures smooth trajectory tracking and speeds up convergence.
+
+## 🛠️ Requirements
+
+* **Fiji (ImageJ)**: Recent version recommended.
+* **OpenCV**: This plugin relies on the OpenCV libraries bundled with modern Fiji (ImageJ2). No manual installation is usually required.
+
+## 📜 License & Credits
+
+**FIA** is developed by **Dr. Kui Wang** at the **Institute of Neuroscience (ION), Chinese Academy of Sciences (CAS)**.
+
+Distributed under the **MIT License**. See `LICENSE` for more information.
+
+Copyright © 2026 [www.cns.ac.cn](http://www.cns.ac.cn)
