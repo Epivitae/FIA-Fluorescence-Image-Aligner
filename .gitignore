@@ -1,0 +1,16 @@
+# Maven 编译输出目录 (绝对不能传)
+target/
+
+# IDE 配置文件 (建议不传，保持仓库干净)
+.idea/
+*.iml
+.classpath
+.project
+.settings/
+.vscode/
+
+# Mac 系统垃圾文件
+.DS_Store
+
+# Java 崩溃日志
+hs_err_pid*
