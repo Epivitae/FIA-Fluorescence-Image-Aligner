@@ -2,8 +2,8 @@ name: Sync to GitCode
 
 on:
   push:
-    branches: [ main, master ]  # 当推送到 main 或 master 分支时触发
-  workflow_dispatch:            # 允许手动点击按钮触发
+    branches: [ main, master ]
+  workflow_dispatch:
 
 jobs:
   build:
@@ -13,22 +13,32 @@ jobs:
       - name: Checkout source codes
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # 必须设置为0，获取完整的 commit 历史，否则无法镜像
+          fetch-depth: 0
 
       - name: Push to GitCode
         run: |
-          # 配置 GitCode 远程地址 (使用 Secrets 中的用户名和 Token)
-          # 注意：这里默认 GitCode 仓库名和 GitHub 仓库名一致
-          # 如果不一致，请将 ${{ github.event.repository.name }} 替换为具体的 GitCode 仓库名
+          # -------------------------------------------------------
+          # 1. 硬编码目标仓库信息 (根据您提供的 URL)
+          # -------------------------------------------------------
+          TARGET_OWNER="Epivitae"
+          TARGET_REPO="FIA-Fluorescence-Image-Aligner"
           
-          REMOTE_URL="https://${{ secrets.GITCODE_USERNAME }}:${{ secrets.GITCODE_TOKEN }}@gitcode.com/${{ secrets.GITCODE_USERNAME }}/${{ github.event.repository.name }}.git"
+          # 2. 拼接认证 URL
+          # 格式: https://<用户名>:<Token>@gitcode.com/<Owner>/<Repo>.git
+          # 注意：这里我们强制使用了 Epivitae 作为路径，不再依赖 secrets.GITCODE_USERNAME 来决定路径
+          # 这样可以防止 Secret 用户名与 URL 不一致导致的 403 错误
           
-          echo "Adding GitCode remote..."
+          REMOTE_URL="https://${{ secrets.GITCODE_USERNAME }}:${{ secrets.GITCODE_TOKEN }}@gitcode.com/${TARGET_OWNER}/${TARGET_REPO}.git"
+          
+          echo "Target Repo: https://gitcode.com/${TARGET_OWNER}/${TARGET_REPO}.git"
+          
+          # 3. 添加远程并推送
+          if git remote | grep -q "gitcode"; then
+            git remote remove gitcode
+          fi
+          
           git remote add gitcode $REMOTE_URL
           
-          echo "Pushing to GitCode..."
-          # --force 确保强制覆盖（镜像模式）
-          # --all 推送所有分支
-          # --tags 推送所有标签
+          echo "Pushing refs..."
           git push gitcode --all --force
           git push gitcode --tags --force
