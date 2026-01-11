@@ -35,7 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
-import javax.swing.plaf.basic.BasicProgressBarUI; // [新增] 关键：用于自定义进度条颜色
+import javax.swing.plaf.basic.BasicProgressBarUI;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
@@ -105,7 +105,6 @@ public class FIA_Command implements Command {
         private final Font FONT_SMALL = new Font("Arial", Font.PLAIN, 10);
         private final Font FONT_CHECKBOX = new Font("Arial", Font.PLAIN, 11);
         
-        // [主题色]
         private final Color COLOR_BLUE = new Color(33, 100, 200);   
         private final Color COLOR_RED = new Color(220, 50, 50);     
         
@@ -229,25 +228,24 @@ public class FIA_Command implements Command {
             // Run
             btnRun = new JButton("Run Alignment");
             btnRun.setFont(FONT_BTN_RUN); btnRun.setForeground(COLOR_BLUE); btnRun.setBackground(Color.WHITE);
-            btnRun.setFocusPainted(false); btnRun.setAlignmentX(Component.CENTER_ALIGNMENT); btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
+            // Run 按钮也加上这个，防止点击后出现焦点框
+            btnRun.setFocusable(false);
+            btnRun.setAlignmentX(Component.CENTER_ALIGNMENT); btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
             btnRun.addActionListener(this::startAlignment);
             mainPanel.add(btnRun);
             mainPanel.add(Box.createVerticalStrut(5));
 
-            // 4. Progress (Fixed: Flat Blue)
+            // 4. Progress (Flat Blue)
             progressBar = new JProgressBar(0, 100);
             progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
-            progressBar.setPreferredSize(new Dimension(200, 12)); // 稍微加高一点点，不用太高
-            // [UI Fix] 强制使用 BasicUI，覆盖 Windows 原生绿色
+            progressBar.setPreferredSize(new Dimension(200, 12)); 
             progressBar.setUI(new BasicProgressBarUI() {
-                @Override
-                protected Color getSelectionBackground() { return Color.BLACK; } // 文字颜色
-                @Override
-                protected Color getSelectionForeground() { return Color.WHITE; }
+                @Override protected Color getSelectionBackground() { return Color.BLACK; } 
+                @Override protected Color getSelectionForeground() { return Color.WHITE; }
             });
-            progressBar.setForeground(COLOR_BLUE); // 设置为蓝色
-            progressBar.setBackground(new Color(235, 235, 235)); // 浅灰底色
-            progressBar.setBorderPainted(false); // 扁平化，无边框
+            progressBar.setForeground(COLOR_BLUE); 
+            progressBar.setBackground(new Color(235, 235, 235)); 
+            progressBar.setBorderPainted(false); 
             mainPanel.add(progressBar);
             
             statusLabel = new JLabel("Ready");
@@ -299,7 +297,11 @@ public class FIA_Command implements Command {
 
         private JToggleButton createVerticalToggle(String text) {
             JToggleButton btn = new JToggleButton(text);
-            btn.setFont(FONT_BTN_MODE); btn.setFocusPainted(false); btn.setMargin(new Insets(4, 5, 4, 5));
+            btn.setFont(FONT_BTN_MODE); 
+            btn.setFocusPainted(false); 
+            // [核心修复] 禁止按钮获取焦点，彻底根除双层边框问题！
+            btn.setFocusable(false); 
+            btn.setMargin(new Insets(4, 5, 4, 5));
             btn.setMaximumSize(new Dimension(Short.MAX_VALUE, 28));
             btn.setAlignmentX(Component.LEFT_ALIGNMENT); btn.setBackground(Color.WHITE); btn.setForeground(Color.BLACK); 
             btn.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
@@ -335,12 +337,11 @@ public class FIA_Command implements Command {
             styleBtn(btnElastic, COLOR_RED); 
         }
 
-        // [UI Fix] 按钮样式修改：从 2px 改为 1px
         private void styleBtn(JToggleButton btn, Color activeColor) {
             if (btn.isSelected()) {
                 btn.setForeground(activeColor); 
                 btn.setBackground(Color.WHITE); 
-                // 关键点：设置为 1 像素，这就是你要的“内边框”效果，简洁现代
+                // 1px 极简内边框
                 btn.setBorder(BorderFactory.createLineBorder(activeColor, 1));
             } else {
                 btn.setForeground(Color.BLACK); 

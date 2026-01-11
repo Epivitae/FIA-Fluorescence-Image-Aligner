@@ -4,9 +4,15 @@
   <groupId>com.github.epivitae</groupId>
   <artifactId>FIA</artifactId>
   <name>FIA Image Aligner</name>
-  <version>1.5.0-OFFLINE</version>
-  <description>Portable version with GUI Update (Global/Local Split)</description>
+  <version>1.8.3</version>
+  <description>Portable version with Modern UI and Optical Flow</description>
   <build>
+    <resources>
+      <resource>
+        <filtering>true</filtering>
+        <directory>src/main/resources</directory>
+      </resource>
+    </resources>
     <finalName>FIA_Offline_${project.version}</finalName>
     <plugins>
       <plugin>
