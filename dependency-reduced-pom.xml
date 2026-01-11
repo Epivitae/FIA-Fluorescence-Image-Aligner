@@ -4,8 +4,8 @@
   <groupId>com.github.epivitae</groupId>
   <artifactId>FIA</artifactId>
   <name>FIA Image Aligner</name>
-  <version>1.4.0-OFFLINE</version>
-  <description>Portable version with embedded OpenCV</description>
+  <version>1.5.0-OFFLINE</version>
+  <description>Portable version with GUI Update (Global/Local Split)</description>
   <build>
     <finalName>FIA_Offline_${project.version}</finalName>
     <plugins>

@@ -6,10 +6,10 @@
 
 	<groupId>com.github.epivitae</groupId>
 	<artifactId>FIA</artifactId>
-	<version>1.4.0-OFFLINE</version>
+	<version>1.5.0-OFFLINE</version>
 
 	<name>FIA Image Aligner</name>
-	<description>Portable version with embedded OpenCV</description>
+	<description>Portable version with GUI Update (Global/Local Split)</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>

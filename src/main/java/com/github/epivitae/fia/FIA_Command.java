@@ -3,7 +3,7 @@ package com.github.epivitae.fia;
 /**
  * PROJECT: FIA (Fluorescence Image Aligner)
  * AUTHOR: Kui Wang
- * VERSION: 1.4.0 (Offline Portable Edition)
+ * VERSION: 1.5.1 (Fix: NullPointerException in GUI Initialization)
  */
 
 import org.scijava.command.Command;
@@ -27,7 +27,6 @@ import org.opencv.core.TermCriteria;
 import org.opencv.video.Video;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.Core; 
-// 引入 OpenPnP 的加载器
 import nu.pattern.OpenCV;
 
 import javax.swing.*;
@@ -40,7 +39,6 @@ import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
 import java.io.FileWriter;
 import java.io.InputStream;
-import java.time.Year;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;
@@ -54,42 +52,24 @@ public class FIA_Command implements Command {
     @Override
     public void run() {
         loadVersionInfo();
-        
-        if (!openCVLoaded) {
-            openCVLoaded = loadOpenCV();
-        }
-
-        if (!openCVLoaded) {
-            return; // 失败则静默退出或已报错
-        }
+        if (!openCVLoaded) openCVLoaded = loadOpenCV();
+        if (!openCVLoaded) return; 
 
         SwingUtilities.invokeLater(() -> {
-            try {
-                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception e) {}
+            try { UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName()); } catch (Exception e) {}
             new FIAGui().setVisible(true);
         });
     }
 
-    // --- 极简加载逻辑 (OpenPnP) ---
     private boolean loadOpenCV() {
         try {
-            // 这行代码会自动判断系统(Win/Mac/Linux)并加载内置的DLL
             OpenCV.loadShared();
             IJ.log("FIA: OpenCV (Offline) loaded successfully.");
             return true;
         } catch (Throwable e) {
             IJ.log("FIA Error: " + e.getMessage());
-            e.printStackTrace();
-            
-            // 如果还失败，说明环境极其特殊，尝试最后的 System.loadLibrary
-            try {
-                System.loadLibrary("opencv_java451"); // 尝试加载特定版本
-                return true;
-            } catch (Throwable ex) {
-                IJ.error("FIA Critical", "Could not load bundled OpenCV.\n" + e.getMessage());
-                return false;
-            }
+            try { System.loadLibrary("opencv_java451"); return true; } 
+            catch (Throwable ex) { IJ.error("FIA Critical", "Could not load bundled OpenCV.\n" + e.getMessage()); return false; }
         }
     }
 
@@ -103,9 +83,9 @@ public class FIA_Command implements Command {
         } catch (Exception ex) {}
     }
 
-    // --- GUI Class (保持不变) ---
+    // --- GUI Class (Fixed NPE) ---
     class FIAGui extends JFrame {
-        private JToggleButton btnTranslation, btnRigid, btnAffine;
+        private JToggleButton btnTranslation, btnRigid, btnAffine, btnElastic;
         private JTextField txtMaxIter, txtEpsilon;
         private JCheckBox chkLog, chkSaveMatrix;
         private JButton btnRun;
@@ -132,7 +112,7 @@ public class FIA_Command implements Command {
             mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
             setContentPane(mainPanel);
 
-            // Header
+            // 1. Header
             JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
             headerPanel.setOpaque(false);
             ImageIcon logoIcon = loadLogo();
@@ -151,32 +131,45 @@ public class FIA_Command implements Command {
             mainPanel.add(headerPanel);
             mainPanel.add(Box.createVerticalStrut(15));
 
-            // Split Panel
+            // 2. Main Split Panel
             JPanel splitPanel = new JPanel(new BorderLayout(5, 0));
             splitPanel.setBorder(createRiaBorder("Alignment Parameters"));
             splitPanel.setOpaque(false);
             
-            // Left
+            // === LEFT COLUMN ===
             JPanel leftCol = new JPanel();
             leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
             leftCol.setOpaque(false);
-            leftCol.setPreferredSize(new Dimension(105, 140)); 
-            JLabel lblMode = new JLabel("Transform Mode");
-            lblMode.setFont(FONT_SECTION_HEAD);
-            lblMode.setForeground(Color.DARK_GRAY);
-            lblMode.setAlignmentX(Component.LEFT_ALIGNMENT);
-            leftCol.add(lblMode);
-            leftCol.add(Box.createVerticalStrut(5));
+            leftCol.setPreferredSize(new Dimension(105, 180)); 
+
+            // Group 1
+            JLabel lblGlobal = new JLabel("Global (ECC)"); 
+            lblGlobal.setFont(FONT_SECTION_HEAD); lblGlobal.setForeground(Color.DARK_GRAY); lblGlobal.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftCol.add(lblGlobal); leftCol.add(Box.createVerticalStrut(5));
+
             btnTranslation = createVerticalToggle("Translation");
             btnTranslation.addActionListener(e -> selectMode(btnTranslation));
             btnRigid = createVerticalToggle("Rigid");
             btnRigid.addActionListener(e -> selectMode(btnRigid));
             btnAffine = createVerticalToggle("Affine");
             btnAffine.addActionListener(e -> selectMode(btnAffine));
+
             leftCol.add(btnTranslation); leftCol.add(Box.createVerticalStrut(4));
             leftCol.add(btnRigid); leftCol.add(Box.createVerticalStrut(4));
             leftCol.add(btnAffine);
             
+            // Group 2
+            leftCol.add(Box.createVerticalStrut(12)); 
+            JLabel lblLocal = new JLabel("Local (Flow)"); 
+            lblLocal.setFont(FONT_SECTION_HEAD); lblLocal.setForeground(Color.DARK_GRAY); lblLocal.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftCol.add(lblLocal); leftCol.add(Box.createVerticalStrut(5));
+
+            btnElastic = createVerticalToggle("Elastic"); 
+            btnElastic.addActionListener(e -> selectMode(btnElastic));
+            leftCol.add(btnElastic);
+
+            // Help
+            leftCol.add(Box.createVerticalStrut(10));
             JButton btnHelp = new JButton("Help");
             btnHelp.setFont(new Font("Arial", Font.PLAIN, 10));
             btnHelp.setMargin(new Insets(1,0,1,0));
@@ -185,79 +178,81 @@ public class FIA_Command implements Command {
             btnHelp.setForeground(Color.GRAY);
             btnHelp.setMaximumSize(new Dimension(50, 20)); 
             btnHelp.setAlignmentX(Component.LEFT_ALIGNMENT);
-            btnHelp.addActionListener(e -> JOptionPane.showMessageDialog(this, "Modes:\n- Translation (Shift)\n- Rigid (Shift+Rotate)\n- Affine (Shear/Scale)", "Help", JOptionPane.INFORMATION_MESSAGE));
-            leftCol.add(Box.createVerticalStrut(8));
+            btnHelp.addActionListener(e -> showHelp());
             leftCol.add(btnHelp);
-            selectMode(btnRigid);
+            
+            // [FIX] Removed selectMode(btnRigid) from here! It was causing NPE.
             splitPanel.add(leftCol, BorderLayout.WEST);
 
             JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
             sep.setForeground(Color.LIGHT_GRAY);
             splitPanel.add(sep, BorderLayout.CENTER);
 
-            // Right
+            // === RIGHT COLUMN ===
             JPanel rightCol = new JPanel();
             rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
             rightCol.setOpaque(false);
             rightCol.setBorder(new EmptyBorder(0, 8, 0, 0));
+            
             addCompactField(rightCol, "Max Iterations:", txtMaxIter = new JTextField("100"));
             addCompactField(rightCol, "<html>Precision (10<sup>-x</sup>):</html>", txtEpsilon = new JTextField("5"));
+            
             rightCol.add(Box.createVerticalStrut(5));
             chkLog = new JCheckBox("Verbose Log");
-            chkLog.setFont(FONT_CHECKBOX);
-            chkLog.setFocusPainted(false);
-            chkLog.setAlignmentX(Component.LEFT_ALIGNMENT);
+            chkLog.setFont(FONT_CHECKBOX); chkLog.setFocusPainted(false); chkLog.setAlignmentX(Component.LEFT_ALIGNMENT);
             rightCol.add(chkLog);
+            
             chkSaveMatrix = new JCheckBox("Save Matrix (.csv)");
-            chkSaveMatrix.setFont(FONT_CHECKBOX);
-            chkSaveMatrix.setFocusPainted(false);
-            chkSaveMatrix.setAlignmentX(Component.LEFT_ALIGNMENT);
+            chkSaveMatrix.setFont(FONT_CHECKBOX); chkSaveMatrix.setFocusPainted(false); chkSaveMatrix.setAlignmentX(Component.LEFT_ALIGNMENT);
             rightCol.add(chkSaveMatrix);
+            
             splitPanel.add(rightCol, BorderLayout.EAST);
             mainPanel.add(splitPanel);
             mainPanel.add(Box.createVerticalStrut(10));
 
-            // Run
+            // 3. Run Button
             btnRun = new JButton("Run Alignment");
-            btnRun.setFont(FONT_BTN_RUN);
-            btnRun.setForeground(COLOR_THEME);
-            btnRun.setBackground(Color.WHITE);
-            btnRun.setFocusPainted(false);
-            btnRun.setAlignmentX(Component.CENTER_ALIGNMENT);
-            btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
+            btnRun.setFont(FONT_BTN_RUN); btnRun.setForeground(COLOR_THEME); btnRun.setBackground(Color.WHITE);
+            btnRun.setFocusPainted(false); btnRun.setAlignmentX(Component.CENTER_ALIGNMENT); btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
             btnRun.addActionListener(this::startAlignment);
             mainPanel.add(btnRun);
             mainPanel.add(Box.createVerticalStrut(5));
 
+            // 4. Progress
             progressBar = new JProgressBar(0, 100);
             progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
             progressBar.setPreferredSize(new Dimension(200, 6));
             progressBar.setForeground(COLOR_THEME);
             mainPanel.add(progressBar);
             statusLabel = new JLabel("Ready");
-            statusLabel.setFont(FONT_SMALL);
-            statusLabel.setForeground(Color.GRAY);
-            statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            statusLabel.setFont(FONT_SMALL); statusLabel.setForeground(Color.GRAY); statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             mainPanel.add(statusLabel);
+            
             pack();
+            
+            // [FIX] Initialize selection at the VERY END, after all components exist
+            selectMode(btnRigid); 
+            
             setLocationRelativeTo(null);
+        }
+
+        private void showHelp() {
+            String msg = "<html><body style='width: 300px; font-family: Arial; font-size: 10px;'>" +
+                    "<b>Global (ECC):</b><ul><li>Translation: XY only.</li><li>Rigid: XY + Rotation.</li><li>Affine: Shift/Scale/Shear.</li></ul>" +
+                    "<b>Local (Flow):</b><ul><li>Elastic: Optical Flow for deformation.</li></ul></body></html>";
+            JOptionPane.showMessageDialog(this, msg, "FIA Help", JOptionPane.INFORMATION_MESSAGE);
         }
 
         private void addCompactField(JPanel container, String labelText, JTextField field) {
             JPanel row = new JPanel();
             row.setLayout(new BoxLayout(row, BoxLayout.Y_AXIS)); 
-            row.setOpaque(false);
-            row.setAlignmentX(Component.LEFT_ALIGNMENT); 
+            row.setOpaque(false); row.setAlignmentX(Component.LEFT_ALIGNMENT); 
             JLabel lbl = new JLabel(labelText);
-            lbl.setFont(FONT_LABEL);
-            lbl.setAlignmentX(Component.LEFT_ALIGNMENT); 
+            lbl.setFont(FONT_LABEL); lbl.setAlignmentX(Component.LEFT_ALIGNMENT); 
             row.add(lbl);
-            field.setFont(FONT_INPUT);
-            field.setMaximumSize(new Dimension(70, 24)); 
-            field.setAlignmentX(Component.LEFT_ALIGNMENT); 
+            field.setFont(FONT_INPUT); field.setMaximumSize(new Dimension(70, 24)); field.setAlignmentX(Component.LEFT_ALIGNMENT); 
             row.add(field);
-            container.add(row);
-            container.add(Box.createVerticalStrut(6));
+            container.add(row); container.add(Box.createVerticalStrut(6));
         }
 
         private JToggleButton createVerticalToggle(String text) {
@@ -282,11 +277,18 @@ public class FIA_Command implements Command {
         }
 
         private void selectMode(JToggleButton target) {
-            btnTranslation.setSelected(false); btnRigid.setSelected(false); btnAffine.setSelected(false);
-            target.setSelected(true); updateToggleStyles();
+            btnTranslation.setSelected(false); btnRigid.setSelected(false); btnAffine.setSelected(false); btnElastic.setSelected(false);
+            target.setSelected(true);
+            updateToggleStyles();
+            // Control logic for inputs
+            boolean isECC = (target != btnElastic);
+            if(txtMaxIter != null) txtMaxIter.setEnabled(isECC);
+            if(chkSaveMatrix != null) chkSaveMatrix.setEnabled(isECC);
         }
 
-        private void updateToggleStyles() { styleBtn(btnTranslation); styleBtn(btnRigid); styleBtn(btnAffine); }
+        private void updateToggleStyles() { 
+            styleBtn(btnTranslation); styleBtn(btnRigid); styleBtn(btnAffine); styleBtn(btnElastic); 
+        }
 
         private void styleBtn(JToggleButton btn) {
             if (btn.isSelected()) {
@@ -302,7 +304,7 @@ public class FIA_Command implements Command {
             if (!openCVLoaded) { IJ.error("OpenCV Missing", "Failed to load bundled OpenCV."); return; }
             btnRun.setEnabled(false); btnRun.setText("Aligning..."); statusLabel.setText("Initializing...");
             String mode = "Rigid";
-            if (btnTranslation.isSelected()) mode = "Translation"; else if (btnAffine.isSelected()) mode = "Affine";
+            if (btnTranslation.isSelected()) mode = "Translation"; else if (btnAffine.isSelected()) mode = "Affine"; else if (btnElastic.isSelected()) mode = "Elastic";
             int maxIter = 100; int eps = 5;
             try { maxIter = Integer.parseInt(txtMaxIter.getText()); eps = Integer.parseInt(txtEpsilon.getText()); } catch (NumberFormatException ex) {}
             new AlignmentWorker(imp, mode, maxIter, eps, chkLog.isSelected(), chkSaveMatrix.isSelected()).execute();
@@ -311,21 +313,17 @@ public class FIA_Command implements Command {
         class AlignmentWorker extends SwingWorker<Void, Integer> {
             ImagePlus srcImp, resImp; String mode; int maxIter, eps; boolean verbose, saveMatrix;
             List<String> matrixLog = new ArrayList<>();
-            
             public AlignmentWorker(ImagePlus imp, String mode, int maxIter, int eps, boolean verbose, boolean saveMatrix) {
                 this.srcImp = imp; this.mode = mode; this.maxIter = maxIter; this.eps = eps; this.verbose = verbose; this.saveMatrix = saveMatrix;
             }
-            
             @Override protected Void doInBackground() throws Exception {
                 publish(0);
-                if (saveMatrix) matrixLog.add("Frame,m00,m01,m02,m10,m11,m12");
-
+                if (saveMatrix && !mode.equals("Elastic")) matrixLog.add("Frame,m00,m01,m02,m10,m11,m12");
                 ImageStack srcStack = srcImp.getStack();
                 ImageStack resStack = srcStack.duplicate(); 
                 resImp = new ImagePlus("FIA-" + srcImp.getTitle(), resStack);
                 resImp.setCalibration(srcImp.getCalibration().copy());
                 resImp.setDimensions(srcImp.getNChannels(), srcImp.getNSlices(), srcImp.getNFrames());
-
                 int frames = srcImp.getNFrames(); int slices = srcImp.getNSlices(); int channels = srcImp.getNChannels();
                 int nTimepoints = frames > 1 ? frames : slices;
                 
@@ -345,14 +343,11 @@ public class FIA_Command implements Command {
                 int idx0 = resImp.getStackIndex(refChannel, 1, 1);
                 Mat tplRaw = imagePlusToMat(resImp.getStack().getProcessor(idx0)); 
                 Mat tpl = new Mat();
-                
-                // NO BLUR (Strict)
                 tplRaw.convertTo(tpl, CvType.CV_32F);
                 Core.normalize(tpl, tpl, 0, 1, Core.NORM_MINMAX);
-                
                 Mat warp = Mat.eye(2, 3, CvType.CV_32F); 
                 TermCriteria term = new TermCriteria(TermCriteria.COUNT+TermCriteria.EPS, maxIter, Math.pow(10, -eps));
-                if (saveMatrix) logMatrix(1, warp);
+                if (saveMatrix && !mode.equals("Elastic")) logMatrix(1, warp);
 
                 for (int t=1; t<=nTimepoints; t++) {
                     if (isCancelled()) break;
@@ -360,65 +355,34 @@ public class FIA_Command implements Command {
                          int idx = resImp.getStackIndex(refChannel, 1, t);
                          Mat currRaw = imagePlusToMat(resImp.getStack().getProcessor(idx));
                          Mat curr = new Mat();
-                         
-                         // NO BLUR
                          currRaw.convertTo(curr, CvType.CV_32F);
                          Core.normalize(curr, curr, 0, 1, Core.NORM_MINMAX);
-                         
-                         try {
-                             Video.findTransformECC(tpl, curr, warp, warpMode, term, new Mat(), 5);
-                             if (verbose) IJ.log("Frame " + t + ": OK");
-                         } catch (Throwable ex) {
-                             IJ.log("FIA Warn Frame " + t + ": " + ex.getMessage());
+                         if (mode.equals("Elastic")) {
+                             if (verbose) IJ.log("Frame " + t + ": Elastic mode selected (Alg pending)");
+                         } else {
+                             try { Video.findTransformECC(tpl, curr, warp, warpMode, term, new Mat(), 5); if (verbose) IJ.log("Frame " + t + ": OK"); } 
+                             catch (Throwable ex) { IJ.log("FIA Warn Frame " + t + ": " + ex.getMessage()); }
+                             if (saveMatrix) logMatrix(t, warp);
                          }
-                         if (saveMatrix) logMatrix(t, warp);
                     }
-                    
                     for (int c=1; c<=channels; c++) {
                         int idx = resImp.getStackIndex(c, 1, t);
                         ImageProcessor ip = resImp.getStack().getProcessor(idx); 
-                        Mat src = imagePlusToMat(ip);
-                        Mat dst = new Mat();
-                        Imgproc.warpAffine(src, dst, warp, src.size(), Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
-                        updateImageProcessor(ip, dst);
+                        if (mode.equals("Elastic")) { } else {
+                            Mat src = imagePlusToMat(ip); Mat dst = new Mat();
+                            Imgproc.warpAffine(src, dst, warp, src.size(), Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
+                            updateImageProcessor(ip, dst);
+                        }
                     }
                     publish((int)((double)t/nTimepoints*100));
                 }
                 return null;
             }
-            
             private void logMatrix(int frame, Mat m) { float[] data = new float[6]; m.get(0, 0, data); String line = String.format("%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f", frame, data[0], data[1], data[2], data[3], data[4], data[5]); matrixLog.add(line); }
             @Override protected void process(List<Integer> chunks) { int val = chunks.get(chunks.size()-1); progressBar.setValue(val); statusLabel.setText("Processing: " + val + "%"); }
             @Override protected void done() { 
                 btnRun.setEnabled(true); btnRun.setText("Run Alignment"); statusLabel.setText("Done"); 
-                try {
-                    if (resImp != null) {
-                        resImp.setDimensions(srcImp.getNChannels(), srcImp.getNSlices(), srcImp.getNFrames());
-                        resImp.setOpenAsHyperStack(true);
-                        if (srcImp.isComposite() || srcImp.getNChannels() > 1) {
-                            CompositeImage outComp = new CompositeImage(resImp, CompositeImage.COMPOSITE);
-                            if (srcImp instanceof CompositeImage) {
-                                CompositeImage inComp = (CompositeImage) srcImp;
-                                for (int c = 1; c <= srcImp.getNChannels(); c++) {
-                                    LUT lut = inComp.getChannelLut(c);
-                                    outComp.setChannelLut(lut, c);
-                                    outComp.setPosition(c, 1, 1);
-                                    outComp.setDisplayRange(lut.min, lut.max);
-                                }
-                            } else {
-                                for (int c = 1; c <= srcImp.getNChannels(); c++) {
-                                    outComp.setChannelLut(LUT.createLutFromColor(c==1?Color.RED : (c==2?Color.GREEN : Color.BLUE)), c);
-                                    outComp.setPosition(c, 1, 1);
-                                    outComp.resetDisplayRange();
-                                }
-                            }
-                            outComp.show();
-                        } else {
-                            resImp.setDisplayRange(srcImp.getDisplayRangeMin(), srcImp.getDisplayRangeMax());
-                            resImp.show();
-                        }
-                    }
-                } catch (Exception e) {}
+                try { if (resImp != null) { resImp.setDimensions(srcImp.getNChannels(), srcImp.getNSlices(), srcImp.getNFrames()); resImp.setOpenAsHyperStack(true); if (srcImp.isComposite() || srcImp.getNChannels() > 1) { CompositeImage outComp = new CompositeImage(resImp, CompositeImage.COMPOSITE); if (srcImp instanceof CompositeImage) { CompositeImage inComp = (CompositeImage) srcImp; for (int c = 1; c <= srcImp.getNChannels(); c++) { LUT lut = inComp.getChannelLut(c); outComp.setChannelLut(lut, c); outComp.setPosition(c, 1, 1); outComp.setDisplayRange(lut.min, lut.max); } } else { for (int c = 1; c <= srcImp.getNChannels(); c++) { outComp.setChannelLut(LUT.createLutFromColor(c==1?Color.RED : (c==2?Color.GREEN : Color.BLUE)), c); outComp.setPosition(c, 1, 1); outComp.resetDisplayRange(); } } outComp.show(); } else { resImp.setDisplayRange(srcImp.getDisplayRangeMin(), srcImp.getDisplayRangeMax()); resImp.show(); } } } catch (Exception e) {}
                 IJ.showStatus("FIA: Finished"); 
                 if (saveMatrix && !matrixLog.isEmpty()) saveMatrixFile(); 
             }
