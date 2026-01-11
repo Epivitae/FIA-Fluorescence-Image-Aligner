@@ -1,6 +1,6 @@
 {
-  "title": "FIA: Fluorescence Image Aligner - Dual-Engine Motion Correction for ImageJ/Fiji (v3.0.0)",
-  "description": "<p><strong>FIA (Fluorescence Image Aligner) v3.0.0</strong> is a major milestone release introducing a revolutionary <strong>Dual-Engine Architecture</strong> for robust motion correction in fluorescence microscopy. This version bridges the gap between high-precision rigid alignment and robust large-displacement stabilization.</p><p><strong>v3.0.0 Highlights: The \"Dual-Engine\" Update</strong><br>This release integrates two powerful registration kernels into a unified, smart interface, allowing users to tackle everything from subtle sub-pixel jitter to severe sample drift and deformation.</p><p><strong>Key Features:</strong></p><ul><li><strong>🚀 Dual-Engine Architecture:</strong><ul><li><strong>OpenCV ECC (Default):</strong> Provides sub-pixel precision for rigid body transformations (Translation/Euclidean/Affine), ideal for high-quality functional imaging data.</li><li><strong>Legacy Stabilizer (New):</strong> A full Java port of the classic Lucas-Kanade algorithm (based on Kang Li's Image Stabilizer). It offers superior robustness against large displacements where gradient-based methods might fail.</li></ul></li><li><strong>🌊 Elastic Registration (New):</strong> Introduces a dense <strong>Optical Flow (Farneback)</strong> mode to correct non-rigid deformations, such as tissue growth, squashing, or complex biological warping.</li><li><strong>⚓ Dynamic Anchor Strategy:</strong> Implements a \"What You See Is What You Anchor\" philosophy. Users can now set the alignment reference to the <strong>currently viewed frame</strong> (e.g., Frame 50), automatically registering past and future frames to this optimal timepoint.</li><li><strong>🧠 Smart UI & Workflow:</strong><ul><li><strong>Context-Aware Interface:</strong> Parameter panels automatically hide/show based on the selected engine and mode to reduce clutter.</li><li><strong>Biosensor Tool Integration:</strong> Now organized under the standardized <code>Biosensor Tool</code> menu for better discoverability.</li><li><strong>Rolling Reference:</strong> The Legacy engine supports a customizable update coefficient (default 0.90) for smooth, steady-cam style stabilization.</li></ul></li><li><strong>🛡️ Non-Destructive & Quantitative:</strong> Continues to prioritize data integrity by generating new stacks without altering raw files, and offers CSV export of transformation matrices for trajectory analysis.</li></ul>",
+  "title": "FIA: Fluorescence Image Aligner - Robust Motion Correction with Dense Flow for ImageJ/Fiji (v3.1.0)",
+  "description": "<p><strong>FIA (Fluorescence Image Aligner) v3.1.0</strong> is a major update introducing the <strong>Dense Flow Engine</strong>, a state-of-the-art non-rigid registration method designed specifically for low-SNR biological time-lapse microscopy.</p><p><strong>v3.1.0 Highlights: The \"Dense Flow\" Update</strong><br>This release addresses the critical challenge of aligning noisy fluorescence data (e.g., Calcium/Voltage imaging) by introducing Temporal Averaging and Contrast Enhancement (CLAHE) into the motion estimation pipeline.</p><p><strong>Key Features:</strong></p><ul><li><strong>🚀 New \"Dense Flow\" Engine (Non-Rigid):</strong><ul><li><strong>Super Reference:</strong> Eliminates the \"floating anchor\" problem by averaging <em>N</em> frames (user-definable Ref Depth) to create a noise-free reference target.</li><li><strong>Feature Enhancement:</strong> Internally applies <strong>CLAHE</strong> (Contrast Limited Adaptive Histogram Equalization) to reveal tissue structure in dark/low-contrast regions before calculating flow.</li><li><strong>Robustness:</strong> Significantly outperforms standard Optical Flow on noisy, in-vivo brain imaging datasets.</li></ul></li><li><strong>🔬 Scientific Integrity:</strong><ul><li><strong>Navigation vs. Transport:</strong> Motion vectors are calculated using the enhanced (blurred/CLAHE) images, but the transformation is applied to the <strong>original raw data</strong> using high-precision cubic interpolation.</li><li><strong>Quantitative Safe:</strong> Ensures that pixel intensity values (DN) are preserved for accurate <strong>&Delta;F/F</strong> analysis.</li></ul></li><li><strong>⚓ Dual-Engine Core:</strong><ul><li><strong>OpenCV ECC:</strong> Remains the gold standard for sub-pixel <strong>Rigid/Affine</strong> alignment (Rotation + Translation).</li><li><strong>Legacy Stabilizer:</strong> A fallback kernel based on Kang Li's Lucas-Kanade algorithm for systems without OpenCV or for large-displacement stabilization.</li></ul></li><li><strong>🧠 Smart UI:</strong> Parameter panels now dynamically adapt to the selected mode, revealing advanced settings (Flow WinSize, PolyN) only when needed.</li></ul>",
   "creators": [
     {
       "name": "Wang, Kui",
@@ -10,7 +10,7 @@
   ],
   "access_right": "open",
   "license": "MIT",
-  "version": "3.0.0",
+  "version": "3.1.0",
   "keywords": [
     "imagej",
     "fiji",
@@ -19,14 +19,13 @@
     "bioimage-analysis",
     "image-registration",
     "motion-correction",
-    "dual-engine",
-    "opencv",
-    "legacy-stabilizer",
-    "optical-flow",
-    "elastic-registration",
-    "lucas-kanade",
+    "dense-flow",
+    "non-rigid-registration",
+    "clahe",
+    "temporal-averaging",
     "calcium-imaging",
-    "fluorescence-microscopy"
+    "fluorescence-microscopy",
+    "opencv"
   ],
   "upload_type": "software",
   "related_identifiers": [

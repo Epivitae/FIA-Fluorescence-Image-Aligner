@@ -2,7 +2,7 @@
   <img src="src/main/resources/FIA.png" width="150" alt="FIA Logo">
 </p>
 
-<h1 align="center">FIA: Fluorescence Image Aligner</h1>
+<h1 align="center">FIA (菲亚): Fluorescence Image Aligner</h1>
 
 <p align="center">
   <img src="https://img.shields.io/github/v/release/Epivitae/FIA-Fluorescence-Image-Aligner?label=latest%20release&style=flat-square&color=blue" alt="Release">
@@ -31,7 +31,7 @@
 
 ## 📖 Overview
 
-**FIA (Fluorescence Image Aligner) v3.1.0** is a major update designed to solve the full spectrum of motion artifacts in fluorescence microscopy.
+**FIA (Fluorescence Image Aligner, 菲亚) v3.1.0** is a major update designed to solve the full spectrum of motion artifacts in fluorescence microscopy.
 
 Whether you are dealing with sub-pixel jitter in functional imaging or complex tissue deformation in behaving animals, FIA provides a unified solution. It bridges the gap between high-precision rigid alignment and robust non-rigid registration.
 
