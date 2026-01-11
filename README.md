@@ -1,125 +1,138 @@
-<div align="center">
-  <img src="src/main/resources/FIA.png" alt="FIA Logo" width="120">
-  <h1>FIA: Fluorescence Image Aligner</h1>
-  
-  <p>
-    <strong>Dual-Engine Motion Correction & Elastic Registration for ImageJ/Fiji</strong>
-  </p>
+<p align="center">
+  <img src="src/main/resources/FIA.png" width="150" alt="FIA Logo">
+</p>
 
-  <p align="center">
-    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
-      <img src="https://img.shields.io/badge/release-v3.0.0-blue.svg" alt="Release">
-    </a>    
-    <a href="https://doi.org/10.5281/zenodo.18211241">
-      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18211241.svg" alt="DOI">
-    </a>
-    <img src="https://img.shields.io/badge/platform-ImageJ%20%2F%20Fiji-red.svg" alt="Platform">
-    <a href="https://opensource.org/licenses/MIT">
-      <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
-    </a>    
-    <br> 
-    <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Repo Size">
-    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/commits/main">
-      <img src="https://img.shields.io/github/last-commit/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Last Commit">
-    </a>
-    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
-      <img src="https://img.shields.io/github/downloads/Epivitae/FIA-Fluorescence-Image-Aligner/total" alt="Downloads">
-    </a>    
-    <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/stargazers">
-      <img src="https://img.shields.io/github/stars/Epivitae/FIA-Fluorescence-Image-Aligner?style=social" alt="GitHub Stars">
-    </a>
-  </p>
-</div>
+<h1 align="center">FIA: Fluorescence Image Aligner</h1>
+
+<p align="center">
+  <img src="https://img.shields.io/github/v/release/Epivitae/FIA-Fluorescence-Image-Aligner?label=latest%20release&style=flat-square&color=blue" alt="Release">
+  <img src="https://img.shields.io/badge/Platform-ImageJ%2FFiji-brightgreen?style=flat-square&logo=imagej" alt="Platform">
+  <img src="https://img.shields.io/github/license/Epivitae/FIA-Fluorescence-Image-Aligner?style=flat-square" alt="License">
+  <img src="https://img.shields.io/badge/Language-Java%208%2B-orange?style=flat-square&logo=java" alt="Java">
+  <br>
+  <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner?style=flat-square" alt="Size">
+  <img src="https://img.shields.io/github/downloads/Epivitae/FIA-Fluorescence-Image-Aligner/total?style=flat-square&color=blueviolet" alt="Downloads">
+  <a href="https://doi.org/10.5281/zenodo.18206932"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18206932.svg" alt="DOI"></a>
+</p>
+
+<p align="center">
+  <strong>Robust Motion Correction for Biological Time-Lapse Microscopy</strong>
+  <br>
+  <em>Specialized for Calcium Imaging (G/R-CaMP), Voltage Imaging, and Long-term Live Cell Monitoring.</em>
+</p>
 
 ---
+
 <div align="center">
 
 ![fia-reg](/images/compressed-fia-reg.gif)
-
-</div>
+<br>
+<em>(FIA corrects both global drift and local tissue deformation)</em></div>
 
 ## 📖 Overview
 
-**FIA (Fluorescence Image Aligner) v3.0.0** is a major milestone release introducing a **Dual-Engine Architecture** to solve the full spectrum of motion artifacts in fluorescence microscopy. 
+**FIA (Fluorescence Image Aligner) v3.1.0** is a major update designed to solve the full spectrum of motion artifacts in fluorescence microscopy.
 
-Whether you are dealing with sub-pixel jitter in functional imaging (Calcium/Voltage) or massive displacements in behaving animals, FIA provides a unified solution. It bridges the gap between high-precision rigid alignment and robust legacy stabilization, while adding **Elastic Registration** for soft tissue deformation.
+Whether you are dealing with sub-pixel jitter in functional imaging or complex tissue deformation in behaving animals, FIA provides a unified solution. It bridges the gap between high-precision rigid alignment and robust non-rigid registration.
 
-## ✨ Key Features (v3.0.0)
+### 🚀 What's New in v3.1.0?
+* **New "Dense Flow" Engine**: A robust non-rigid registration mode using **Temporal Averaging (Super Reference)** and **CLAHE** pre-processing.
+* **Smart UI**: Parameter panels now dynamically adapt to your selected mode.
+* **Scientific Validity**: Strict separation of alignment calculation (using enhanced images) and pixel transformation (using raw data).
 
-* **🚀 Dual-Engine Core**:
-    * **OpenCV ECC**: Best for high-precision, sub-pixel rigid alignment.
-    * **Legacy Stabilizer**: A Java port of the classic Lucas-Kanade algorithm (Kang Li), superior for large displacements and robust stabilization.
-* **🌊 Elastic Registration**: Uses **Dense Optical Flow** to correct non-rigid deformations (e.g., tissue growth, squashing, complex warping).
-* **⚓ Dynamic Anchor ("What You See Is What You Anchor")**: Alignment is no longer forced to Frame 1. FIA automatically uses the **currently viewed frame** as the reference, allowing you to anchor to the most stable moment in your recording.
-* **🧠 Smart UI**: The interface automatically adapts, hiding irrelevant parameters based on the selected engine and mode.
-* **🛡️ Non-Destructive**: Always generates a new aligned stack (`FIA-Result`), ensuring your raw data is never modified.
-* **📂 Biosensor Tool Suite**: Now integrated into the standardized `Plugins > Biosensor Tool` menu.
+---
+
+## ✨ Key Features
+
+### 1. Dual-Engine Core
+* **OpenCV ECC**: Best for high-precision, sub-pixel rigid alignment (Rotation/Translation).
+* **Dense Flow (New Standard)**: State-of-the-art local deformation correction. Handles internal tissue warping better than any rigid method.
+* **Legacy Mode**: A fallback engine based on Kang Li's "Image Stabilizer" for systems without OpenCV support.
+
+### 2. Scientific Integrity
+* **Intensity Preservation**: FIA guarantees that your **ΔF/F** analysis remains valid.
+    * *Navigation:* Motion vectors are calculated using noise-reduced, contrast-enhanced temporary frames.
+    * *Transport:* These vectors are applied to your **original raw data** using cubic interpolation.
+    * **Result:** No artificial contrast or brightness is written to your final image.
+
+### 3. Smart "Super Reference"
+* In **Dense Flow** mode, FIA creates a reference anchor by averaging `N` frames (user-definable). This eliminates the "floating anchor" problem caused by shot noise in single-frame references.
+
+---
 
 ## 📥 Installation
 
-1.  Download the latest **`FIA-3.0.0.jar`** from the [Releases Page](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases).
-2.  Drag and drop the `.jar` file into your **Fiji** main window (or copy it to the `Fiji.app/plugins/` folder).
-3.  **Restart Fiji**.
+1.  Download the latest `FIA-3.1.0.jar` from the [Releases Page](../../releases).
+2.  Drag and drop the file into your Fiji/ImageJ **`plugins`** folder (or main window).
+3.  Restart Fiji.
+4.  Navigate to: `Plugins > Biosensor Tool > FIA Image Aligner`.
 
-You will see the plugin under **Plugins > Biosensor Tool > FIA Image Aligner**.
+---
 
 ## 🎮 Usage Guide
 
 ### 1. Engine Selection
-FIA v3 offers different engines for different scenarios:
 
-| Engine | Best For | Pros | Cons |
-| :--- | :--- | :--- | :--- |
-| **OpenCV** | **Functional Imaging** (Ca2+, Voltage) | High Precision, True Rigid Rotation | May fail on very large shifts |
-| **Legacy** | **Behaving Animals / Large Drift** | Extremely Robust, Rolling Reference | No Rotation support |
-| **Elastic** | **Soft Tissue / Developmental** | Fixes Deformation | Computationally heavier |
+| Mode | Description | Best For |
+| :--- | :--- | :--- |
+| **Global (Step 1)** | **Translation / Rigid / Affine** | Corrects general XY drift and Rotation. (Recommended for behaving animals). |
+| **Dense Flow (Step 2)** | **(Recommended)** Uses Super Reference + CLAHE. | **95% of Biological Samples.** Noisy fluorescence, brain slices, in vivo imaging. |
+| **Elastic (Step 2)** | (Legacy) Raw optical flow without preprocessing. | **High-SNR Data.** Binary masks, artificial beads, or clean data where contrast enhancement is harmful. |
 
 ### 2. Controller Settings
 
-<p align="center">
-  <img src="images/FIA-main.png" alt="FIA Controller" width="250">
-  <br><em>(The new Smart UI in v3.0.0)</em>
-</p>
+<div align="center">
+  <img src="images/FIA-main.png" alt="FIA Controller" width="300">
+  <br><em>(The new Smart UI in v3.1.0 adapts to your selected mode)</em>
+</div>
 
-* **Global Modes (Step 1)**:
-    * **Translation**: XY shift only.
-    * **Rigid**: XY shift + Rotation (OpenCV only).
-    * **Affine**: Shift + Rotation + Scale/Shear.
-* **Local Mode (Step 2)**:
-    * **Elastic**: Corrects local deformations using Optical Flow.
-* **Parameters**:
-    * **Max Iterations**: (OpenCV/Legacy) Max loops per frame (Default: 200).
-    * **Pyramid Levels**: (Legacy) Higher levels handle larger displacements (Default: 1).
-    * **Update Coeff**: (Legacy) `1.0` = Fixed Reference (Registration); `0.90` = Rolling Reference (Stabilization).
-    * **Flow WinSize**: (Elastic) Window size for optical flow. Default `5` for fine details.
+* **Global Settings (Hidden in Local Mode)**:
+    * **Max Iterations**: Loop limit for Rigid/Affine calculation.
+    * **Precision**: Convergence threshold ($10^{-x}$).
 
-### 3. Dynamic Anchor Strategy
-1.  Scroll through your stack to find a "perfect" frame (good focus, centered).
-2.  Leave the slider on that frame (e.g., Frame 50).
-3.  Click **Run Alignment**.
-4.  FIA will align Frames 1-49 *forward* to Frame 50, and Frames 51-End *backward* to Frame 50.
+* **Dense Flow Settings (New)**:
+    * **Flow WinSize**: The "field of view" for local alignment.
+        * *Small (5)*: Captures fine jitter.
+        * *Large (15+)*: Captures global tissue waves.
+    * **Ref Depth**: Number of frames averaged to create the "Super Reference". (Default: 5).
+    * **Poly N**: Smoothing factor. *5 (Sharp)* vs *7 (Blur/Noisy)*.
 
-## ⚙️ Algorithm Details
+---
 
-* **OpenCV Engine**: Implements the Parametric Image Alignment using Enhanced Correlation Coefficient (ECC) maximization (Evangelidis & Psarakis, 2008). It is intensity-invariant.
-* **Legacy Engine**: Implements a pyramidal Lucas-Kanade optical flow algorithm for global motion estimation. It uses a "Rolling Reference" update mechanism to handle gradual drift smoothly.
-* **Elastic Mode**: Utilizes Farneback's Dense Optical Flow to calculate a pixel-wise displacement field, remapping the image to correct non-linear distortions.
+## 📚 Algorithm References
 
-## 🛠️ Requirements
+FIA is built upon the following established computer vision algorithms:
 
-* **Fiji (ImageJ)**: Recent version recommended.
-* **OpenCV**: This plugin relies on the OpenCV libraries bundled with modern Fiji (ImageJ2).
+**1. Non-Rigid Registration (Dense Flow)**
+* **Farnebäck, G. (2003).** Two-Frame Motion Estimation Based on Polynomial Expansion. *SCIA 2003*.
+* **Zuiderveld, K. (1994).** Contrast Limited Adaptive Histogram Equalization (CLAHE). *Graphics Gems IV*.
 
-## 📜 Citation
+**2. Rigid / Affine Alignment (ECC)**
+* **Evangelidis, G. D., & Psarakis, E. Z. (2008).** Parametric Image Alignment using Enhanced Correlation Coefficient Maximization. *IEEE TPAMI*.
+
+**3. Legacy Stabilization**
+* **Li, K. (2008).** The Image Stabilizer Plugin for ImageJ.
+* **Lucas, B. D., & Kanade, T. (1981).** An Iterative Image Registration Technique with an Application to Stereo Vision. *IJCAI*.
+
+---
+
+## 📚 Citation
 
 If you use FIA in your research, please cite:
 
-> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.0.0).* Zenodo. https://doi.org/10.5281/zenodo.18211241
+```bibtex
+@software{wang_fia_2026,
+  author = {Wang, Kui},
+  title = {FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji},
+  version = {v3.1.0},
+  year = {2026},
+  url = {[https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner)},
+  doi = {10.5281/zenodo.18206932}
+}
+```
 
-## 📜 License
+---
 
-**FIA** is developed by **Dr. Kui Wang** at the **Institute of Neuroscience (ION), Chinese Academy of Sciences (CAS)**.
-
-Distributed under the **MIT License**. See `LICENSE` for more information.
-
-Copyright © 2026 [www.cns.ac.cn](http://www.cns.ac.cn)
+<p align="center">
+  <strong>© 2026 Dr. Kui Wang | Chimeric Nano Sensor Team | www.cns.ac.cn</strong>
+</p>
