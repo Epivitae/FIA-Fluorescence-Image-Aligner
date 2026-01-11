@@ -4,7 +4,7 @@
   <groupId>com.github.epivitae</groupId>
   <artifactId>FIA</artifactId>
   <name>FIA Image Aligner</name>
-  <version>3.0.0</version>
+  <version>3.1.0</version>
   <description>Portable version with Modern UI and Optical Flow</description>
   <build>
     <resources>
@@ -13,7 +13,7 @@
         <directory>src/main/resources</directory>
       </resource>
     </resources>
-    <finalName>FIA_Offline_${project.version}</finalName>
+    <finalName>FIA_v${project.version}</finalName>
     <plugins>
       <plugin>
         <artifactId>maven-compiler-plugin</artifactId>
