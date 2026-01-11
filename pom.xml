@@ -6,7 +6,7 @@
 
 	<groupId>com.github.epivitae</groupId>
 	<artifactId>FIA</artifactId>
-	<version>1.8.3</version>
+	<version>3.0.0</version>
 
 	<name>FIA Image Aligner</name>
 	<description>Portable version with Modern UI and Optical Flow</description>
