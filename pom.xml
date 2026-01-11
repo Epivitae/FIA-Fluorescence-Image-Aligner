@@ -6,10 +6,10 @@
 
 	<groupId>com.github.epivitae</groupId>
 	<artifactId>FIA</artifactId>
-	<version>1.5.0-OFFLINE</version>
+	<version>1.8.3</version>
 
 	<name>FIA Image Aligner</name>
-	<description>Portable version with GUI Update (Global/Local Split)</description>
+	<description>Portable version with Modern UI and Optical Flow</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -48,6 +48,14 @@
 
 	<build>
 		<finalName>FIA_Offline_${project.version}</finalName>
+		
+		<resources>
+			<resource>
+				<directory>src/main/resources</directory>
+				<filtering>true</filtering>
+			</resource>
+		</resources>
+
 		<plugins>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

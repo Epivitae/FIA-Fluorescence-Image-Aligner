@@ -3,7 +3,7 @@ package com.github.epivitae.fia;
 /**
  * PROJECT: FIA (Fluorescence Image Aligner)
  * AUTHOR: Kui Wang
- * VERSION: v1.6.0 (Feature: Implemented Elastic/Optical Flow Alignment)
+ * VERSION: Dynamic (Reads from pom.xml)
  */
 
 import org.scijava.command.Command;
@@ -35,6 +35,7 @@ import javax.swing.border.Border;
 import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
+import javax.swing.plaf.basic.BasicProgressBarUI; // [新增] 关键：用于自定义进度条颜色
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.io.BufferedWriter;
@@ -62,6 +63,16 @@ public class FIA_Command implements Command {
         });
     }
 
+    private void loadVersionInfo() {
+        try (InputStream input = getClass().getResourceAsStream("/fia-version.properties")) {
+            if (input != null) {
+                Properties prop = new Properties();
+                prop.load(input);
+                APP_VERSION = prop.getProperty("version", "v0.0.0");
+            }
+        } catch (Exception ex) {}
+    }
+
     private boolean loadOpenCV() {
         try {
             OpenCV.loadShared();
@@ -74,27 +85,18 @@ public class FIA_Command implements Command {
         }
     }
 
-    private void loadVersionInfo() {
-        try (InputStream input = getClass().getResourceAsStream("/fia-version.properties")) {
-            if (input != null) {
-                Properties prop = new Properties();
-                prop.load(input);
-                APP_VERSION = prop.getProperty("version", "v0.0.0");
-            }
-        } catch (Exception ex) {}
-    }
-
     // --- GUI Class ---
     class FIAGui extends JFrame {
         private JToggleButton btnTranslation, btnRigid, btnAffine, btnElastic;
-        private JTextField txtMaxIter, txtEpsilon;
+        private JTextField txtMaxIter, txtEpsilon, txtWinSize;
         private JCheckBox chkLog, chkSaveMatrix;
         private JButton btnRun;
         private JProgressBar progressBar;
         private JLabel statusLabel;
         
-        // UI Constants
+        // Colors & Fonts
         private final Font FONT_HEADER_TITLE = new Font("Arial", Font.BOLD, 18);
+        private final Font FONT_HEADER_SUB = new Font("Arial", Font.PLAIN, 10);
         private final Font FONT_SECTION_HEAD = new Font("Arial", Font.BOLD, 11);
         private final Font FONT_LABEL = new Font("Arial", Font.PLAIN, 12);
         private final Font FONT_INPUT = new Font("Arial", Font.PLAIN, 13);
@@ -102,7 +104,10 @@ public class FIA_Command implements Command {
         private final Font FONT_BTN_MODE = new Font("Arial", Font.BOLD, 12);
         private final Font FONT_SMALL = new Font("Arial", Font.PLAIN, 10);
         private final Font FONT_CHECKBOX = new Font("Arial", Font.PLAIN, 11);
-        private final Color COLOR_THEME = new Color(33, 100, 200); 
+        
+        // [主题色]
+        private final Color COLOR_BLUE = new Color(33, 100, 200);   
+        private final Color COLOR_RED = new Color(220, 50, 50);     
         
         public FIAGui() {
             setTitle("FIA Controller " + APP_VERSION);
@@ -114,39 +119,49 @@ public class FIA_Command implements Command {
             mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
             setContentPane(mainPanel);
 
-            // Header
+            // 1. Header
             JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
             headerPanel.setOpaque(false);
             ImageIcon logoIcon = loadLogo();
             if (logoIcon != null) headerPanel.add(new JLabel(logoIcon));
+            
             JPanel textBlock = new JPanel();
             textBlock.setLayout(new BoxLayout(textBlock, BoxLayout.Y_AXIS));
             textBlock.setOpaque(false);
+            
             JLabel titleLabel = new JLabel("FIA Image Aligner");
             titleLabel.setFont(FONT_HEADER_TITLE);
-            titleLabel.setForeground(COLOR_THEME);
+            titleLabel.setForeground(COLOR_BLUE); 
             titleLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             textBlock.add(titleLabel);
-            textBlock.add(new JLabel(" ")); 
+            
+            JLabel subLabel = new JLabel("Version " + APP_VERSION + " | © 2026 Epivitae");
+            subLabel.setFont(FONT_HEADER_SUB);
+            subLabel.setForeground(Color.GRAY);
+            subLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
+            textBlock.add(subLabel);
+            
             headerPanel.add(textBlock);
             headerPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
             mainPanel.add(headerPanel);
             mainPanel.add(Box.createVerticalStrut(15));
 
-            // Split Panel
+            // 2. Split Panel
             JPanel splitPanel = new JPanel(new BorderLayout(5, 0));
-            splitPanel.setBorder(createRiaBorder("Alignment Parameters"));
+            splitPanel.setBorder(createRiaBorder("Alignment Settings"));
             splitPanel.setOpaque(false);
             
-            // Left Column
+            // Left Col
             JPanel leftCol = new JPanel();
             leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
             leftCol.setOpaque(false);
-            leftCol.setPreferredSize(new Dimension(105, 180)); 
+            leftCol.setPreferredSize(new Dimension(115, 185));
 
-            JLabel lblGlobal = new JLabel("Global (ECC)"); 
-            lblGlobal.setFont(FONT_SECTION_HEAD); lblGlobal.setForeground(Color.DARK_GRAY); lblGlobal.setAlignmentX(Component.LEFT_ALIGNMENT);
-            leftCol.add(lblGlobal); leftCol.add(Box.createVerticalStrut(5));
+            // Step 1
+            JLabel lblStep1 = new JLabel("Step 1: Rigid"); 
+            lblStep1.setToolTipText("Run this first");
+            lblStep1.setFont(FONT_SECTION_HEAD); lblStep1.setForeground(COLOR_BLUE); lblStep1.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftCol.add(lblStep1); leftCol.add(Box.createVerticalStrut(5));
 
             btnTranslation = createVerticalToggle("Translation");
             btnTranslation.addActionListener(e -> selectMode(btnTranslation));
@@ -159,10 +174,12 @@ public class FIA_Command implements Command {
             leftCol.add(btnRigid); leftCol.add(Box.createVerticalStrut(4));
             leftCol.add(btnAffine);
             
+            // Step 2
             leftCol.add(Box.createVerticalStrut(12)); 
-            JLabel lblLocal = new JLabel("Local (Flow)"); 
-            lblLocal.setFont(FONT_SECTION_HEAD); lblLocal.setForeground(Color.DARK_GRAY); lblLocal.setAlignmentX(Component.LEFT_ALIGNMENT);
-            leftCol.add(lblLocal); leftCol.add(Box.createVerticalStrut(5));
+            JLabel lblStep2 = new JLabel("Step 2: Deformable"); 
+            lblStep2.setToolTipText("Run after Step 1");
+            lblStep2.setFont(FONT_SECTION_HEAD); lblStep2.setForeground(COLOR_RED); lblStep2.setAlignmentX(Component.LEFT_ALIGNMENT);
+            leftCol.add(lblStep2); leftCol.add(Box.createVerticalStrut(5));
 
             btnElastic = createVerticalToggle("Elastic"); 
             btnElastic.addActionListener(e -> selectMode(btnElastic));
@@ -186,7 +203,7 @@ public class FIA_Command implements Command {
             sep.setForeground(Color.LIGHT_GRAY);
             splitPanel.add(sep, BorderLayout.CENTER);
 
-            // Right Column
+            // Right Col
             JPanel rightCol = new JPanel();
             rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
             rightCol.setOpaque(false);
@@ -194,6 +211,7 @@ public class FIA_Command implements Command {
             
             addCompactField(rightCol, "Max Iterations:", txtMaxIter = new JTextField("100"));
             addCompactField(rightCol, "<html>Precision (10<sup>-x</sup>):</html>", txtEpsilon = new JTextField("5"));
+            addCompactField(rightCol, "<html>Flow WinSize:</html>", txtWinSize = new JTextField("20")); 
             
             rightCol.add(Box.createVerticalStrut(5));
             chkLog = new JCheckBox("Verbose Log");
@@ -208,34 +226,63 @@ public class FIA_Command implements Command {
             mainPanel.add(splitPanel);
             mainPanel.add(Box.createVerticalStrut(10));
 
-            // Run Button
+            // Run
             btnRun = new JButton("Run Alignment");
-            btnRun.setFont(FONT_BTN_RUN); btnRun.setForeground(COLOR_THEME); btnRun.setBackground(Color.WHITE);
+            btnRun.setFont(FONT_BTN_RUN); btnRun.setForeground(COLOR_BLUE); btnRun.setBackground(Color.WHITE);
             btnRun.setFocusPainted(false); btnRun.setAlignmentX(Component.CENTER_ALIGNMENT); btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
             btnRun.addActionListener(this::startAlignment);
             mainPanel.add(btnRun);
             mainPanel.add(Box.createVerticalStrut(5));
 
-            // Progress
+            // 4. Progress (Fixed: Flat Blue)
             progressBar = new JProgressBar(0, 100);
             progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
-            progressBar.setPreferredSize(new Dimension(200, 6));
-            progressBar.setForeground(COLOR_THEME);
+            progressBar.setPreferredSize(new Dimension(200, 12)); // 稍微加高一点点，不用太高
+            // [UI Fix] 强制使用 BasicUI，覆盖 Windows 原生绿色
+            progressBar.setUI(new BasicProgressBarUI() {
+                @Override
+                protected Color getSelectionBackground() { return Color.BLACK; } // 文字颜色
+                @Override
+                protected Color getSelectionForeground() { return Color.WHITE; }
+            });
+            progressBar.setForeground(COLOR_BLUE); // 设置为蓝色
+            progressBar.setBackground(new Color(235, 235, 235)); // 浅灰底色
+            progressBar.setBorderPainted(false); // 扁平化，无边框
             mainPanel.add(progressBar);
+            
             statusLabel = new JLabel("Ready");
             statusLabel.setFont(FONT_SMALL); statusLabel.setForeground(Color.GRAY); statusLabel.setAlignmentX(Component.CENTER_ALIGNMENT);
             mainPanel.add(statusLabel);
             
             pack();
-            selectMode(btnRigid); // Init logic
+            selectMode(btnRigid); 
             setLocationRelativeTo(null);
         }
 
         private void showHelp() {
-            String msg = "<html><body style='width: 300px; font-family: Arial; font-size: 10px;'>" +
-                    "<b>Global (ECC):</b><ul><li>Translation: XY shift.</li><li>Rigid: XY + Rotation.</li><li>Affine: Shift/Scale/Shear.</li></ul>" +
-                    "<b>Local (Flow):</b><ul><li>Elastic: Pixel-wise optical flow.<br>Uses Farneback algorithm.<br>Reference: Frame 1.</li></ul></body></html>";
-            JOptionPane.showMessageDialog(this, msg, "FIA Help", JOptionPane.INFORMATION_MESSAGE);
+            String msg = "<html><body style='width: 400px; font-family: Arial; font-size: 11px;'>" +
+                    "<h3>🔍 Mode Selection Guide</h3>" +
+                    "<b><font color='#2164C8'>Step 1: Rigid</font></b> — <i>Corrects sample drift/rotation</i>" +
+                    "<ul>" +
+                    "<li><b>Translation:</b> Sample moved XY only.</li>" +
+                    "<li><b>Rigid:</b> Sample moved + Rotated. (Standard)</li>" +
+                    "<li><b>Affine:</b> Sample skewed/scaled. (Rare)</li>" +
+                    "</ul>" +
+                    "<b><font color='#DC3232'>Step 2: Deformable</font></b> — <i>Corrects growth/shape change</i>" +
+                    "<ul>" +
+                    "<li><b>Elastic:</b> Uses Optical Flow to fix non-rigid deformation.<br>" +
+                    "<i>Note: Run Step 1 first to align the overall position.</i></li>" +
+                    "</ul>" +
+                    "<hr>" +
+                    "<h3>⚙️ Parameters</h3>" +
+                    "<b>Flow WinSize (Default: 20):</b><br>" +
+                    "Controls how 'stiff' the correction is.<br>" +
+                    "<ul>" +
+                    "<li><b>10 - 25:</b> Fixes jitter/noise. (Recommended)</li>" +
+                    "<li><b>100+:</b> Forces shape match (Cancels growth).</li>" +
+                    "</ul>" +
+                    "</body></html>";
+            JOptionPane.showMessageDialog(this, msg, "FIA User Manual", JOptionPane.INFORMATION_MESSAGE);
         }
 
         private void addCompactField(JPanel container, String labelText, JTextField field) {
@@ -267,7 +314,7 @@ public class FIA_Command implements Command {
 
         private Border createRiaBorder(String title) {
             TitledBorder tb = BorderFactory.createTitledBorder(BorderFactory.createEtchedBorder(), title);
-            tb.setTitleFont(new Font("Arial", Font.BOLD, 12)); tb.setTitleColor(COLOR_THEME);
+            tb.setTitleFont(new Font("Arial", Font.BOLD, 12)); tb.setTitleColor(COLOR_BLUE);
             return new CompoundBorder(tb, new EmptyBorder(8, 8, 8, 8));
         }
 
@@ -278,17 +325,27 @@ public class FIA_Command implements Command {
             boolean isECC = (target != btnElastic);
             if(txtMaxIter != null) txtMaxIter.setEnabled(isECC);
             if(chkSaveMatrix != null) chkSaveMatrix.setEnabled(isECC);
+            if(txtWinSize != null) txtWinSize.setEnabled(!isECC);
         }
 
         private void updateToggleStyles() { 
-            styleBtn(btnTranslation); styleBtn(btnRigid); styleBtn(btnAffine); styleBtn(btnElastic); 
+            styleBtn(btnTranslation, COLOR_BLUE); 
+            styleBtn(btnRigid, COLOR_BLUE); 
+            styleBtn(btnAffine, COLOR_BLUE); 
+            styleBtn(btnElastic, COLOR_RED); 
         }
 
-        private void styleBtn(JToggleButton btn) {
+        // [UI Fix] 按钮样式修改：从 2px 改为 1px
+        private void styleBtn(JToggleButton btn, Color activeColor) {
             if (btn.isSelected()) {
-                btn.setForeground(COLOR_THEME); btn.setBackground(Color.WHITE); btn.setBorder(BorderFactory.createLineBorder(COLOR_THEME, 2));
+                btn.setForeground(activeColor); 
+                btn.setBackground(Color.WHITE); 
+                // 关键点：设置为 1 像素，这就是你要的“内边框”效果，简洁现代
+                btn.setBorder(BorderFactory.createLineBorder(activeColor, 1));
             } else {
-                btn.setForeground(Color.BLACK); btn.setBackground(Color.WHITE); btn.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
+                btn.setForeground(Color.BLACK); 
+                btn.setBackground(Color.WHITE); 
+                btn.setBorder(BorderFactory.createLineBorder(Color.LIGHT_GRAY));
             }
         }
 
@@ -296,26 +353,26 @@ public class FIA_Command implements Command {
             ImagePlus imp = WindowManager.getCurrentImage();
             if (imp == null) { JOptionPane.showMessageDialog(this, "No image found."); return; }
             if (!openCVLoaded) { IJ.error("OpenCV Missing", "Failed to load bundled OpenCV."); return; }
-            
             btnRun.setEnabled(false); btnRun.setText("Aligning..."); statusLabel.setText("Initializing...");
-            
             String mode = "Rigid";
             if (btnTranslation.isSelected()) mode = "Translation"; else if (btnAffine.isSelected()) mode = "Affine"; else if (btnElastic.isSelected()) mode = "Elastic";
-            
             int maxIter = 100; int eps = 5;
-            try { maxIter = Integer.parseInt(txtMaxIter.getText()); eps = Integer.parseInt(txtEpsilon.getText()); } catch (NumberFormatException ex) {}
-            
-            new AlignmentWorker(imp, mode, maxIter, eps, chkLog.isSelected(), chkSaveMatrix.isSelected()).execute();
+            int winSize = 20;
+            try { 
+                maxIter = Integer.parseInt(txtMaxIter.getText()); 
+                eps = Integer.parseInt(txtEpsilon.getText()); 
+                winSize = Integer.parseInt(txtWinSize.getText());
+            } catch (NumberFormatException ex) {}
+            new AlignmentWorker(imp, mode, maxIter, eps, winSize, chkLog.isSelected(), chkSaveMatrix.isSelected()).execute();
         }
 
         class AlignmentWorker extends SwingWorker<Void, Integer> {
-            ImagePlus srcImp, resImp; String mode; int maxIter, eps; boolean verbose, saveMatrix;
+            ImagePlus srcImp, resImp; String mode; int maxIter, eps, winSize; boolean verbose, saveMatrix;
             List<String> matrixLog = new ArrayList<>();
-            // 用于光流的网格缓存
             Mat gridX, gridY, mapX, mapY;
             
-            public AlignmentWorker(ImagePlus imp, String mode, int maxIter, int eps, boolean verbose, boolean saveMatrix) {
-                this.srcImp = imp; this.mode = mode; this.maxIter = maxIter; this.eps = eps; this.verbose = verbose; this.saveMatrix = saveMatrix;
+            public AlignmentWorker(ImagePlus imp, String mode, int maxIter, int eps, int winSize, boolean verbose, boolean saveMatrix) {
+                this.srcImp = imp; this.mode = mode; this.maxIter = maxIter; this.eps = eps; this.winSize = winSize; this.verbose = verbose; this.saveMatrix = saveMatrix;
             }
             
             @Override protected Void doInBackground() throws Exception {
@@ -331,12 +388,8 @@ public class FIA_Command implements Command {
                 int frames = srcImp.getNFrames(); int slices = srcImp.getNSlices(); int channels = srcImp.getNChannels();
                 int nTimepoints = frames > 1 ? frames : slices;
                 
-                // 初始化光流所需的网格
-                if (mode.equals("Elastic")) {
-                    initMeshGrid(srcImp.getWidth(), srcImp.getHeight());
-                }
+                if (mode.equals("Elastic")) initMeshGrid(srcImp.getWidth(), srcImp.getHeight());
 
-                // 选择参考通道
                 int refChannel = 1;
                 if (channels > 1) { 
                     double maxMean = -1; 
@@ -347,7 +400,6 @@ public class FIA_Command implements Command {
                     } 
                 }
 
-                // ECC 准备
                 int warpMode = Video.MOTION_EUCLIDEAN;
                 if (mode.equals("Translation")) warpMode = Video.MOTION_TRANSLATION; else if (mode.equals("Affine")) warpMode = Video.MOTION_AFFINE;
                 
@@ -368,26 +420,29 @@ public class FIA_Command implements Command {
                          Mat currRaw = imagePlusToMat(resImp.getStack().getProcessor(idx));
                          Mat curr = new Mat();
                          currRaw.convertTo(curr, CvType.CV_32F);
-                         Core.normalize(curr, curr, 0, 1, Core.NORM_MINMAX); // 归一化对光流也很重要
+                         Core.normalize(curr, curr, 0, 1, Core.NORM_MINMAX);
                          
                          if (mode.equals("Elastic")) {
-                             // --- 1. 计算致密光流 (Ref vs Curr) ---
-                             // Farneback 参数: pyr_scale=0.5, levels=3, winsize=15, iter=3, poly_n=5, poly_sigma=1.1
+                             Mat tpl8u = new Mat();
+                             Mat curr8u = new Mat();
+                             tpl.convertTo(tpl8u, CvType.CV_8UC1, 255.0);
+                             curr.convertTo(curr8u, CvType.CV_8UC1, 255.0);
+
                              Mat flow = new Mat();
-                             Video.calcOpticalFlowFarneback(tpl, curr, flow, 0.5, 3, 15, 3, 5, 1.1, 0);
+                             Video.calcOpticalFlowFarneback(tpl8u, curr8u, flow, 0.5, 5, winSize, 3, 5, 1.1, 0);
                              
-                             // --- 2. 转换 Flow 到 Map (Map = Grid + Flow) ---
+                             Scalar meanFlow = Core.mean(flow);
+                             double magnitude = Math.sqrt(meanFlow.val[0]*meanFlow.val[0] + meanFlow.val[1]*meanFlow.val[1]);
+                             if (verbose) IJ.log(String.format("Frame %d Flow Mag: %.4f (WinSize: %d)", t, magnitude, winSize));
+
                              List<Mat> flowCh = new ArrayList<>();
-                             Core.split(flow, flowCh); // 分离 dx, dy
-                             Core.add(gridX, flowCh.get(0), mapX); // MapX = GridX + dx
-                             Core.add(gridY, flowCh.get(1), mapY); // MapY = GridY + dy
-                             
-                             if (verbose) IJ.log("Frame " + t + ": Flow calculated.");
+                             Core.split(flow, flowCh); 
+                             Core.add(gridX, flowCh.get(0), mapX);
+                             Core.add(gridY, flowCh.get(1), mapY);
                          } else {
-                             // --- ECC 刚性计算 ---
                              try {
                                  Video.findTransformECC(tpl, curr, warp, warpMode, term, new Mat(), 5);
-                                 if (verbose) IJ.log("Frame " + t + ": Converged");
+                                 if (verbose) IJ.log("Frame " + t + ": OK");
                              } catch (Throwable ex) {
                                  IJ.log("FIA Warn Frame " + t + ": " + ex.getMessage());
                              }
@@ -402,14 +457,11 @@ public class FIA_Command implements Command {
                         Mat dst = new Mat();
                         
                         if (mode.equals("Elastic")) {
-                             // --- 3. 应用非刚性变换 (Remap) ---
-                             // 如果是第一帧，mapX可能为空，跳过
                              if (t > 1 && mapX != null) {
                                  Imgproc.remap(src, dst, mapX, mapY, Imgproc.INTER_LINEAR);
                                  updateImageProcessor(ip, dst);
                              }
                         } else {
-                            // --- 应用刚性变换 (WarpAffine) ---
                             Imgproc.warpAffine(src, dst, warp, src.size(), Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
                             updateImageProcessor(ip, dst);
                         }
@@ -419,17 +471,14 @@ public class FIA_Command implements Command {
                 return null;
             }
             
-            // 初始化网格，加速 map 计算
             private void initMeshGrid(int w, int h) {
                 gridX = new Mat(h, w, CvType.CV_32F);
                 gridY = new Mat(h, w, CvType.CV_32F);
                 mapX = new Mat(h, w, CvType.CV_32F);
                 mapY = new Mat(h, w, CvType.CV_32F);
-                
                 float[] rowX = new float[w];
                 for(int i=0; i<w; i++) rowX[i] = i;
                 for(int j=0; j<h; j++) gridX.put(j, 0, rowX);
-                
                 float[] colY = new float[w];
                 for(int j=0; j<h; j++) {
                     for(int i=0; i<w; i++) colY[i] = j;
