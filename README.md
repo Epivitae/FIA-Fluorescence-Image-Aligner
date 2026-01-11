@@ -32,6 +32,11 @@
 </div>
 
 ---
+<div align="center">
+
+![fia-reg](/images/compressed-fia-reg.gif)
+
+</div>
 
 ## 📖 Overview
 
