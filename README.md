@@ -12,7 +12,7 @@
   <br>
   <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner?style=flat-square" alt="Size">
   <img src="https://img.shields.io/github/downloads/Epivitae/FIA-Fluorescence-Image-Aligner/total?style=flat-square&color=blueviolet" alt="Downloads">
-  <a href="https://doi.org/10.5281/zenodo.18206932"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18206932.svg" alt="DOI"></a>
+  <a href="https://doi.org/10.5281/zenodo.18206931"><img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18206931.svg" alt="DOI"></a>
 </p>
 
 <p align="center">
