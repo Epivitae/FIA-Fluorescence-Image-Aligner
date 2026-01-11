@@ -3,7 +3,7 @@ package com.github.epivitae.fia;
 /**
  * PROJECT: FIA (Fluorescence Image Aligner)
  * AUTHOR: Kui Wang
- * VERSION: 1.5.1 (Fix: NullPointerException in GUI Initialization)
+ * VERSION: v1.6.0 (Feature: Implemented Elastic/Optical Flow Alignment)
  */
 
 import org.scijava.command.Command;
@@ -27,6 +27,7 @@ import org.opencv.core.TermCriteria;
 import org.opencv.video.Video;
 import org.opencv.imgproc.Imgproc;
 import org.opencv.core.Core; 
+import org.opencv.core.Scalar;
 import nu.pattern.OpenCV;
 
 import javax.swing.*;
@@ -83,7 +84,7 @@ public class FIA_Command implements Command {
         } catch (Exception ex) {}
     }
 
-    // --- GUI Class (Fixed NPE) ---
+    // --- GUI Class ---
     class FIAGui extends JFrame {
         private JToggleButton btnTranslation, btnRigid, btnAffine, btnElastic;
         private JTextField txtMaxIter, txtEpsilon;
@@ -92,6 +93,7 @@ public class FIA_Command implements Command {
         private JProgressBar progressBar;
         private JLabel statusLabel;
         
+        // UI Constants
         private final Font FONT_HEADER_TITLE = new Font("Arial", Font.BOLD, 18);
         private final Font FONT_SECTION_HEAD = new Font("Arial", Font.BOLD, 11);
         private final Font FONT_LABEL = new Font("Arial", Font.PLAIN, 12);
@@ -112,7 +114,7 @@ public class FIA_Command implements Command {
             mainPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
             setContentPane(mainPanel);
 
-            // 1. Header
+            // Header
             JPanel headerPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 0));
             headerPanel.setOpaque(false);
             ImageIcon logoIcon = loadLogo();
@@ -131,18 +133,17 @@ public class FIA_Command implements Command {
             mainPanel.add(headerPanel);
             mainPanel.add(Box.createVerticalStrut(15));
 
-            // 2. Main Split Panel
+            // Split Panel
             JPanel splitPanel = new JPanel(new BorderLayout(5, 0));
             splitPanel.setBorder(createRiaBorder("Alignment Parameters"));
             splitPanel.setOpaque(false);
             
-            // === LEFT COLUMN ===
+            // Left Column
             JPanel leftCol = new JPanel();
             leftCol.setLayout(new BoxLayout(leftCol, BoxLayout.Y_AXIS));
             leftCol.setOpaque(false);
             leftCol.setPreferredSize(new Dimension(105, 180)); 
 
-            // Group 1
             JLabel lblGlobal = new JLabel("Global (ECC)"); 
             lblGlobal.setFont(FONT_SECTION_HEAD); lblGlobal.setForeground(Color.DARK_GRAY); lblGlobal.setAlignmentX(Component.LEFT_ALIGNMENT);
             leftCol.add(lblGlobal); leftCol.add(Box.createVerticalStrut(5));
@@ -158,7 +159,6 @@ public class FIA_Command implements Command {
             leftCol.add(btnRigid); leftCol.add(Box.createVerticalStrut(4));
             leftCol.add(btnAffine);
             
-            // Group 2
             leftCol.add(Box.createVerticalStrut(12)); 
             JLabel lblLocal = new JLabel("Local (Flow)"); 
             lblLocal.setFont(FONT_SECTION_HEAD); lblLocal.setForeground(Color.DARK_GRAY); lblLocal.setAlignmentX(Component.LEFT_ALIGNMENT);
@@ -168,7 +168,6 @@ public class FIA_Command implements Command {
             btnElastic.addActionListener(e -> selectMode(btnElastic));
             leftCol.add(btnElastic);
 
-            // Help
             leftCol.add(Box.createVerticalStrut(10));
             JButton btnHelp = new JButton("Help");
             btnHelp.setFont(new Font("Arial", Font.PLAIN, 10));
@@ -181,14 +180,13 @@ public class FIA_Command implements Command {
             btnHelp.addActionListener(e -> showHelp());
             leftCol.add(btnHelp);
             
-            // [FIX] Removed selectMode(btnRigid) from here! It was causing NPE.
             splitPanel.add(leftCol, BorderLayout.WEST);
 
             JSeparator sep = new JSeparator(SwingConstants.VERTICAL);
             sep.setForeground(Color.LIGHT_GRAY);
             splitPanel.add(sep, BorderLayout.CENTER);
 
-            // === RIGHT COLUMN ===
+            // Right Column
             JPanel rightCol = new JPanel();
             rightCol.setLayout(new BoxLayout(rightCol, BoxLayout.Y_AXIS));
             rightCol.setOpaque(false);
@@ -210,7 +208,7 @@ public class FIA_Command implements Command {
             mainPanel.add(splitPanel);
             mainPanel.add(Box.createVerticalStrut(10));
 
-            // 3. Run Button
+            // Run Button
             btnRun = new JButton("Run Alignment");
             btnRun.setFont(FONT_BTN_RUN); btnRun.setForeground(COLOR_THEME); btnRun.setBackground(Color.WHITE);
             btnRun.setFocusPainted(false); btnRun.setAlignmentX(Component.CENTER_ALIGNMENT); btnRun.setMaximumSize(new Dimension(Short.MAX_VALUE, 35));
@@ -218,7 +216,7 @@ public class FIA_Command implements Command {
             mainPanel.add(btnRun);
             mainPanel.add(Box.createVerticalStrut(5));
 
-            // 4. Progress
+            // Progress
             progressBar = new JProgressBar(0, 100);
             progressBar.setAlignmentX(Component.CENTER_ALIGNMENT);
             progressBar.setPreferredSize(new Dimension(200, 6));
@@ -229,17 +227,14 @@ public class FIA_Command implements Command {
             mainPanel.add(statusLabel);
             
             pack();
-            
-            // [FIX] Initialize selection at the VERY END, after all components exist
-            selectMode(btnRigid); 
-            
+            selectMode(btnRigid); // Init logic
             setLocationRelativeTo(null);
         }
 
         private void showHelp() {
             String msg = "<html><body style='width: 300px; font-family: Arial; font-size: 10px;'>" +
-                    "<b>Global (ECC):</b><ul><li>Translation: XY only.</li><li>Rigid: XY + Rotation.</li><li>Affine: Shift/Scale/Shear.</li></ul>" +
-                    "<b>Local (Flow):</b><ul><li>Elastic: Optical Flow for deformation.</li></ul></body></html>";
+                    "<b>Global (ECC):</b><ul><li>Translation: XY shift.</li><li>Rigid: XY + Rotation.</li><li>Affine: Shift/Scale/Shear.</li></ul>" +
+                    "<b>Local (Flow):</b><ul><li>Elastic: Pixel-wise optical flow.<br>Uses Farneback algorithm.<br>Reference: Frame 1.</li></ul></body></html>";
             JOptionPane.showMessageDialog(this, msg, "FIA Help", JOptionPane.INFORMATION_MESSAGE);
         }
 
@@ -280,7 +275,6 @@ public class FIA_Command implements Command {
             btnTranslation.setSelected(false); btnRigid.setSelected(false); btnAffine.setSelected(false); btnElastic.setSelected(false);
             target.setSelected(true);
             updateToggleStyles();
-            // Control logic for inputs
             boolean isECC = (target != btnElastic);
             if(txtMaxIter != null) txtMaxIter.setEnabled(isECC);
             if(chkSaveMatrix != null) chkSaveMatrix.setEnabled(isECC);
@@ -302,31 +296,47 @@ public class FIA_Command implements Command {
             ImagePlus imp = WindowManager.getCurrentImage();
             if (imp == null) { JOptionPane.showMessageDialog(this, "No image found."); return; }
             if (!openCVLoaded) { IJ.error("OpenCV Missing", "Failed to load bundled OpenCV."); return; }
+            
             btnRun.setEnabled(false); btnRun.setText("Aligning..."); statusLabel.setText("Initializing...");
+            
             String mode = "Rigid";
             if (btnTranslation.isSelected()) mode = "Translation"; else if (btnAffine.isSelected()) mode = "Affine"; else if (btnElastic.isSelected()) mode = "Elastic";
+            
             int maxIter = 100; int eps = 5;
             try { maxIter = Integer.parseInt(txtMaxIter.getText()); eps = Integer.parseInt(txtEpsilon.getText()); } catch (NumberFormatException ex) {}
+            
             new AlignmentWorker(imp, mode, maxIter, eps, chkLog.isSelected(), chkSaveMatrix.isSelected()).execute();
         }
 
         class AlignmentWorker extends SwingWorker<Void, Integer> {
             ImagePlus srcImp, resImp; String mode; int maxIter, eps; boolean verbose, saveMatrix;
             List<String> matrixLog = new ArrayList<>();
+            // 用于光流的网格缓存
+            Mat gridX, gridY, mapX, mapY;
+            
             public AlignmentWorker(ImagePlus imp, String mode, int maxIter, int eps, boolean verbose, boolean saveMatrix) {
                 this.srcImp = imp; this.mode = mode; this.maxIter = maxIter; this.eps = eps; this.verbose = verbose; this.saveMatrix = saveMatrix;
             }
+            
             @Override protected Void doInBackground() throws Exception {
                 publish(0);
                 if (saveMatrix && !mode.equals("Elastic")) matrixLog.add("Frame,m00,m01,m02,m10,m11,m12");
+
                 ImageStack srcStack = srcImp.getStack();
                 ImageStack resStack = srcStack.duplicate(); 
                 resImp = new ImagePlus("FIA-" + srcImp.getTitle(), resStack);
                 resImp.setCalibration(srcImp.getCalibration().copy());
                 resImp.setDimensions(srcImp.getNChannels(), srcImp.getNSlices(), srcImp.getNFrames());
+
                 int frames = srcImp.getNFrames(); int slices = srcImp.getNSlices(); int channels = srcImp.getNChannels();
                 int nTimepoints = frames > 1 ? frames : slices;
                 
+                // 初始化光流所需的网格
+                if (mode.equals("Elastic")) {
+                    initMeshGrid(srcImp.getWidth(), srcImp.getHeight());
+                }
+
+                // 选择参考通道
                 int refChannel = 1;
                 if (channels > 1) { 
                     double maxMean = -1; 
@@ -337,6 +347,7 @@ public class FIA_Command implements Command {
                     } 
                 }
 
+                // ECC 准备
                 int warpMode = Video.MOTION_EUCLIDEAN;
                 if (mode.equals("Translation")) warpMode = Video.MOTION_TRANSLATION; else if (mode.equals("Affine")) warpMode = Video.MOTION_AFFINE;
                 
@@ -345,6 +356,7 @@ public class FIA_Command implements Command {
                 Mat tpl = new Mat();
                 tplRaw.convertTo(tpl, CvType.CV_32F);
                 Core.normalize(tpl, tpl, 0, 1, Core.NORM_MINMAX);
+                
                 Mat warp = Mat.eye(2, 3, CvType.CV_32F); 
                 TermCriteria term = new TermCriteria(TermCriteria.COUNT+TermCriteria.EPS, maxIter, Math.pow(10, -eps));
                 if (saveMatrix && !mode.equals("Elastic")) logMatrix(1, warp);
@@ -356,20 +368,48 @@ public class FIA_Command implements Command {
                          Mat currRaw = imagePlusToMat(resImp.getStack().getProcessor(idx));
                          Mat curr = new Mat();
                          currRaw.convertTo(curr, CvType.CV_32F);
-                         Core.normalize(curr, curr, 0, 1, Core.NORM_MINMAX);
+                         Core.normalize(curr, curr, 0, 1, Core.NORM_MINMAX); // 归一化对光流也很重要
+                         
                          if (mode.equals("Elastic")) {
-                             if (verbose) IJ.log("Frame " + t + ": Elastic mode selected (Alg pending)");
+                             // --- 1. 计算致密光流 (Ref vs Curr) ---
+                             // Farneback 参数: pyr_scale=0.5, levels=3, winsize=15, iter=3, poly_n=5, poly_sigma=1.1
+                             Mat flow = new Mat();
+                             Video.calcOpticalFlowFarneback(tpl, curr, flow, 0.5, 3, 15, 3, 5, 1.1, 0);
+                             
+                             // --- 2. 转换 Flow 到 Map (Map = Grid + Flow) ---
+                             List<Mat> flowCh = new ArrayList<>();
+                             Core.split(flow, flowCh); // 分离 dx, dy
+                             Core.add(gridX, flowCh.get(0), mapX); // MapX = GridX + dx
+                             Core.add(gridY, flowCh.get(1), mapY); // MapY = GridY + dy
+                             
+                             if (verbose) IJ.log("Frame " + t + ": Flow calculated.");
                          } else {
-                             try { Video.findTransformECC(tpl, curr, warp, warpMode, term, new Mat(), 5); if (verbose) IJ.log("Frame " + t + ": OK"); } 
-                             catch (Throwable ex) { IJ.log("FIA Warn Frame " + t + ": " + ex.getMessage()); }
+                             // --- ECC 刚性计算 ---
+                             try {
+                                 Video.findTransformECC(tpl, curr, warp, warpMode, term, new Mat(), 5);
+                                 if (verbose) IJ.log("Frame " + t + ": Converged");
+                             } catch (Throwable ex) {
+                                 IJ.log("FIA Warn Frame " + t + ": " + ex.getMessage());
+                             }
                              if (saveMatrix) logMatrix(t, warp);
                          }
                     }
+                    
                     for (int c=1; c<=channels; c++) {
                         int idx = resImp.getStackIndex(c, 1, t);
                         ImageProcessor ip = resImp.getStack().getProcessor(idx); 
-                        if (mode.equals("Elastic")) { } else {
-                            Mat src = imagePlusToMat(ip); Mat dst = new Mat();
+                        Mat src = imagePlusToMat(ip);
+                        Mat dst = new Mat();
+                        
+                        if (mode.equals("Elastic")) {
+                             // --- 3. 应用非刚性变换 (Remap) ---
+                             // 如果是第一帧，mapX可能为空，跳过
+                             if (t > 1 && mapX != null) {
+                                 Imgproc.remap(src, dst, mapX, mapY, Imgproc.INTER_LINEAR);
+                                 updateImageProcessor(ip, dst);
+                             }
+                        } else {
+                            // --- 应用刚性变换 (WarpAffine) ---
                             Imgproc.warpAffine(src, dst, warp, src.size(), Imgproc.INTER_LINEAR + Imgproc.WARP_INVERSE_MAP);
                             updateImageProcessor(ip, dst);
                         }
@@ -378,6 +418,25 @@ public class FIA_Command implements Command {
                 }
                 return null;
             }
+            
+            // 初始化网格，加速 map 计算
+            private void initMeshGrid(int w, int h) {
+                gridX = new Mat(h, w, CvType.CV_32F);
+                gridY = new Mat(h, w, CvType.CV_32F);
+                mapX = new Mat(h, w, CvType.CV_32F);
+                mapY = new Mat(h, w, CvType.CV_32F);
+                
+                float[] rowX = new float[w];
+                for(int i=0; i<w; i++) rowX[i] = i;
+                for(int j=0; j<h; j++) gridX.put(j, 0, rowX);
+                
+                float[] colY = new float[w];
+                for(int j=0; j<h; j++) {
+                    for(int i=0; i<w; i++) colY[i] = j;
+                    gridY.put(j, 0, colY);
+                }
+            }
+
             private void logMatrix(int frame, Mat m) { float[] data = new float[6]; m.get(0, 0, data); String line = String.format("%d,%.6f,%.6f,%.6f,%.6f,%.6f,%.6f", frame, data[0], data[1], data[2], data[3], data[4], data[5]); matrixLog.add(line); }
             @Override protected void process(List<Integer> chunks) { int val = chunks.get(chunks.size()-1); progressBar.setValue(val); statusLabel.setText("Processing: " + val + "%"); }
             @Override protected void done() { 
