@@ -1,6 +1,6 @@
 {
-  "title": "FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji",
-  "description": "<p><strong>FIA (Fluorescence Image Aligner)</strong> is a professional ImageJ/Fiji plugin designed to correct motion artifacts (drift, jitter, rotation) in time-lapse fluorescence microscopy data. Unlike conventional center-of-mass methods, FIA utilizes the <strong>OpenCV ECC (Enhanced Correlation Coefficient)</strong> algorithm, making it highly robust against fluctuating signals common in functional imaging (e.g., calcium/voltage imaging).</p><p><strong>v1.0.0 Initial Release:</strong> This version introduces a fully non-destructive workflow and a modern Swing-based controller, providing precise sub-pixel registration without altering original raw data.</p><p><strong>Key Features:</strong></p><ul><li><strong>🛡️ Non-Destructive Workflow:</strong> Prioritizes data integrity by generating a new aligned stack (<code>FIA-Result</code>) instead of modifying the input file, ensuring the raw data remains untouched.</li><li><strong>🧠 Intensity-Invariant Algorithm:</strong> Uses the ECC metric to align images based on correlation rather than simple intensity features, ensuring stable registration even when neurons flash on and off.</li><li><strong>🚀 Warm Start Strategy:</strong> Implements a smart state-tracking mechanism where the transformation matrix of the previous frame serves as the initial guess for the next, preventing alignment loss during rapid movement.</li><li><strong>🌈 Smart Multi-Channel Support:</strong> Automatically detects the channel with the best signal-to-noise ratio (highest mean intensity) to calculate the motion vector, then applies the correction to all channels synchronously.</li><li><strong>📊 Quantitative Output:</strong> Offers an option to export the precise geometric transformation matrix to a <code>.csv</code> file for post-hoc trajectory analysis.</li></ul>",
+  "title": "FIA: Fluorescence Image Aligner - Dual-Engine Motion Correction for ImageJ/Fiji (v3.0.0)",
+  "description": "<p><strong>FIA (Fluorescence Image Aligner) v3.0.0</strong> is a major milestone release introducing a revolutionary <strong>Dual-Engine Architecture</strong> for robust motion correction in fluorescence microscopy. This version bridges the gap between high-precision rigid alignment and robust large-displacement stabilization.</p><p><strong>v3.0.0 Highlights: The \"Dual-Engine\" Update</strong><br>This release integrates two powerful registration kernels into a unified, smart interface, allowing users to tackle everything from subtle sub-pixel jitter to severe sample drift and deformation.</p><p><strong>Key Features:</strong></p><ul><li><strong>🚀 Dual-Engine Architecture:</strong><ul><li><strong>OpenCV ECC (Default):</strong> Provides sub-pixel precision for rigid body transformations (Translation/Euclidean/Affine), ideal for high-quality functional imaging data.</li><li><strong>Legacy Stabilizer (New):</strong> A full Java port of the classic Lucas-Kanade algorithm (based on Kang Li's Image Stabilizer). It offers superior robustness against large displacements where gradient-based methods might fail.</li></ul></li><li><strong>🌊 Elastic Registration (New):</strong> Introduces a dense <strong>Optical Flow (Farneback)</strong> mode to correct non-rigid deformations, such as tissue growth, squashing, or complex biological warping.</li><li><strong>⚓ Dynamic Anchor Strategy:</strong> Implements a \"What You See Is What You Anchor\" philosophy. Users can now set the alignment reference to the <strong>currently viewed frame</strong> (e.g., Frame 50), automatically registering past and future frames to this optimal timepoint.</li><li><strong>🧠 Smart UI & Workflow:</strong><ul><li><strong>Context-Aware Interface:</strong> Parameter panels automatically hide/show based on the selected engine and mode to reduce clutter.</li><li><strong>Biosensor Tool Integration:</strong> Now organized under the standardized <code>Biosensor Tool</code> menu for better discoverability.</li><li><strong>Rolling Reference:</strong> The Legacy engine supports a customizable update coefficient (default 0.90) for smooth, steady-cam style stabilization.</li></ul></li><li><strong>🛡️ Non-Destructive & Quantitative:</strong> Continues to prioritize data integrity by generating new stacks without altering raw files, and offers CSV export of transformation matrices for trajectory analysis.</li></ul>",
   "creators": [
     {
       "name": "Wang, Kui",
@@ -10,24 +10,23 @@
   ],
   "access_right": "open",
   "license": "MIT",
+  "version": "3.0.0",
   "keywords": [
     "imagej",
     "fiji",
     "imagej-plugin",
-    "java",
-    "swing-gui",
     "scientific-software",
     "bioimage-analysis",
     "image-registration",
     "motion-correction",
-    "image-alignment",
+    "dual-engine",
     "opencv",
-    "ecc-algorithm",
-    "fluorescence-microscopy",
+    "legacy-stabilizer",
+    "optical-flow",
+    "elastic-registration",
+    "lucas-kanade",
     "calcium-imaging",
-    "time-lapse",
-    "drift-correction",
-    "stack-alignment"
+    "fluorescence-microscopy"
   ],
   "upload_type": "software",
   "related_identifiers": [

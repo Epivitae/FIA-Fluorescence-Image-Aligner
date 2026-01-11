@@ -3,21 +3,22 @@
   <h1>FIA: Fluorescence Image Aligner</h1>
   
   <p>
-    <strong>Robust, Intensity-Invariant Motion Correction for Time-Lapse Microscopy</strong>
+    <strong>Dual-Engine Motion Correction & Elastic Registration for ImageJ/Fiji</strong>
   </p>
 
   <p align="center">
     <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
-      <img src="https://img.shields.io/badge/release-v1.0.0-blue.svg" alt="Release">
+      <img src="https://img.shields.io/badge/release-v3.0.0-blue.svg" alt="Release">
     </a>    
-    <a href="https://doi.org/10.5281/zenodo.18206931">
-      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18206931.svg" alt="DOI">
+    <a href="https://doi.org/10.5281/zenodo.18211241">
+      <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18211241.svg" alt="DOI">
     </a>
     <img src="https://img.shields.io/badge/platform-ImageJ%20%2F%20Fiji-red.svg" alt="Platform">
     <a href="https://opensource.org/licenses/MIT">
       <img src="https://img.shields.io/badge/license-MIT-green.svg" alt="License">
     </a>    
-    <br> <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Repo Size">
+    <br> 
+    <img src="https://img.shields.io/github/repo-size/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Repo Size">
     <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/commits/main">
       <img src="https://img.shields.io/github/last-commit/Epivitae/FIA-Fluorescence-Image-Aligner" alt="Last Commit">
     </a>
@@ -34,73 +35,83 @@
 
 ## 📖 Overview
 
-**FIA (Fluorescence Image Aligner)** is a lightweight ImageJ/Fiji plugin designed to correct motion artifacts (drift, jitter, rotation) in time-lapse fluorescence microscopy data.
+**FIA (Fluorescence Image Aligner) v3.0.0** is a major milestone release introducing a **Dual-Engine Architecture** to solve the full spectrum of motion artifacts in fluorescence microscopy. 
 
-Unlike conventional center-of-mass registration, FIA utilizes the **OpenCV ECC (Enhanced Correlation Coefficient)** algorithm. This makes it highly robust against **fluctuating fluorescence signals**, such as those seen in:
-* Calcium Imaging (GCaMP)
-* Voltage Imaging
-* Bioluminescence recordings
+Whether you are dealing with sub-pixel jitter in functional imaging (Calcium/Voltage) or massive displacements in behaving animals, FIA provides a unified solution. It bridges the gap between high-precision rigid alignment and robust legacy stabilization, while adding **Elastic Registration** for soft tissue deformation.
 
-FIA employs a **non-destructive** workflow, ensuring your raw data is never overwritten.
+## ✨ Key Features (v3.0.0)
 
-## ✨ Key Features
-
-* **🛡️ Non-Destructive**: Always generates a new aligned stack (`FIA-[Filename]`), preserving your original data.
-* **🧠 Intensity Invariant**: Accurately aligns images even when neurons flash on and off.
-* **🚀 Warm Start Strategy**: Uses the transformation matrix from the previous frame as the initial guess for the next, preventing alignment loss in long recordings.
-* **🌈 Multi-Channel Support**: Automatically detects the channel with the best signal-to-noise ratio (highest mean intensity) as the reference, and applies the correction to all channels.
-* **📊 Quantitative Output**: Option to save the precise transformation matrix (`.csv`) for post-hoc analysis.
+* **🚀 Dual-Engine Core**:
+    * **OpenCV ECC**: Best for high-precision, sub-pixel rigid alignment.
+    * **Legacy Stabilizer**: A Java port of the classic Lucas-Kanade algorithm (Kang Li), superior for large displacements and robust stabilization.
+* **🌊 Elastic Registration**: Uses **Dense Optical Flow** to correct non-rigid deformations (e.g., tissue growth, squashing, complex warping).
+* **⚓ Dynamic Anchor ("What You See Is What You Anchor")**: Alignment is no longer forced to Frame 1. FIA automatically uses the **currently viewed frame** as the reference, allowing you to anchor to the most stable moment in your recording.
+* **🧠 Smart UI**: The interface automatically adapts, hiding irrelevant parameters based on the selected engine and mode.
+* **🛡️ Non-Destructive**: Always generates a new aligned stack (`FIA-Result`), ensuring your raw data is never modified.
+* **📂 Biosensor Tool Suite**: Now integrated into the standardized `Plugins > Biosensor Tool` menu.
 
 ## 📥 Installation
 
-1.  Download the latest **`FIA-1.0.0.jar`** from the [Releases Page](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases).
+1.  Download the latest **`FIA-3.0.0.jar`** from the [Releases Page](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases).
 2.  Drag and drop the `.jar` file into your **Fiji** main window (or copy it to the `Fiji.app/plugins/` folder).
 3.  **Restart Fiji**.
 
-You will see the plugin under **Plugins > FIA > FIA Image Aligner**.
+You will see the plugin under **Plugins > Biosensor Tool > FIA Image Aligner**.
 
 ## 🎮 Usage Guide
 
-### 1. Launch
-Open your time-lapse stack (T-series) in Fiji, then run **Plugins > FIA > FIA Image Aligner**.
+### 1. Engine Selection
+FIA v3 offers different engines for different scenarios:
+
+| Engine | Best For | Pros | Cons |
+| :--- | :--- | :--- | :--- |
+| **OpenCV** | **Functional Imaging** (Ca2+, Voltage) | High Precision, True Rigid Rotation | May fail on very large shifts |
+| **Legacy** | **Behaving Animals / Large Drift** | Extremely Robust, Rolling Reference | No Rotation support |
+| **Elastic** | **Soft Tissue / Developmental** | Fixes Deformation | Computationally heavier |
 
 ### 2. Controller Settings
 
 <p align="center">
-  <img src="images/FIA-main.png" alt="FIA Controller" width="200">
+  <img src="images/FIA-main.png" alt="FIA Controller" width="250">
+  <br><em>(The new Smart UI in v3.0.0)</em>
 </p>
 
-* **Transform Mode**:
-    * **Translation**: Corrects x, y shifts only. Fastest, suitable for mechanical stage drift.
-    * **Rigid (Recommended)**: Corrects x, y shifts + Rotation. Best for most biological samples (e.g., awake zebrafish/mice).
-    * **Affine**: Adds Shear/Scale correction. Use only if tissue deformation is suspected.
-    * *Tip: Click the **Help** button in the UI for details.*
-* **Max Iterations**: (Default: 100) Maximum ECC iterations per frame. Increase if alignment fails.
-* **Precision ($10^{-x}$)**: (Default: 5) Convergence threshold ($10^{-5}$).
-* **Verbose Log**: Prints detailed convergence info to the Console.
-* **Save Matrix (.csv)**: If checked, prompts to save the geometric transformation matrix after the run.
+* **Global Modes (Step 1)**:
+    * **Translation**: XY shift only.
+    * **Rigid**: XY shift + Rotation (OpenCV only).
+    * **Affine**: Shift + Rotation + Scale/Shear.
+* **Local Mode (Step 2)**:
+    * **Elastic**: Corrects local deformations using Optical Flow.
+* **Parameters**:
+    * **Max Iterations**: (OpenCV/Legacy) Max loops per frame (Default: 200).
+    * **Pyramid Levels**: (Legacy) Higher levels handle larger displacements (Default: 1).
+    * **Update Coeff**: (Legacy) `1.0` = Fixed Reference (Registration); `0.90` = Rolling Reference (Stabilization).
+    * **Flow WinSize**: (Elastic) Window size for optical flow. Default `5` for fine details.
 
-### 3. Result
-Click **Run Alignment**. 
-* A progress bar will show the status.
-* Upon completion, a **new window** will open with the aligned stack.
-* The raw data window remains untouched.
+### 3. Dynamic Anchor Strategy
+1.  Scroll through your stack to find a "perfect" frame (good focus, centered).
+2.  Leave the slider on that frame (e.g., Frame 50).
+3.  Click **Run Alignment**.
+4.  FIA will align Frames 1-49 *forward* to Frame 50, and Frames 51-End *backward* to Frame 50.
 
 ## ⚙️ Algorithm Details
 
-FIA implements the parametric image alignment algorithm using the Enhanced Correlation Coefficient (ECC) maximization (Evangelidis & Psarakis, 2008). 
-
-1.  **Reference Selection**: The first frame of the brightest channel is used as the anchor template.
-2.  **Preprocessing**: Images are converted to `Float32` for sub-pixel precision.
-3.  **Iterative Optimization**: The algorithm maximizes the correlation coefficient between the template and the warped current frame.
-4.  **Warm Start**: $Matrix_{t}$ is initialized using $Matrix_{t-1}$. This ensures smooth trajectory tracking and speeds up convergence.
+* **OpenCV Engine**: Implements the Parametric Image Alignment using Enhanced Correlation Coefficient (ECC) maximization (Evangelidis & Psarakis, 2008). It is intensity-invariant.
+* **Legacy Engine**: Implements a pyramidal Lucas-Kanade optical flow algorithm for global motion estimation. It uses a "Rolling Reference" update mechanism to handle gradual drift smoothly.
+* **Elastic Mode**: Utilizes Farneback's Dense Optical Flow to calculate a pixel-wise displacement field, remapping the image to correct non-linear distortions.
 
 ## 🛠️ Requirements
 
 * **Fiji (ImageJ)**: Recent version recommended.
-* **OpenCV**: This plugin relies on the OpenCV libraries bundled with modern Fiji (ImageJ2). No manual installation is usually required.
+* **OpenCV**: This plugin relies on the OpenCV libraries bundled with modern Fiji (ImageJ2).
 
-## 📜 License & Credits
+## 📜 Citation
+
+If you use FIA in your research, please cite:
+
+> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.0.0).* Zenodo. https://doi.org/10.5281/zenodo.18211241
+
+## 📜 License
 
 **FIA** is developed by **Dr. Kui Wang** at the **Institute of Neuroscience (ION), Chinese Academy of Sciences (CAS)**.
 
