@@ -1,6 +1,6 @@
 <div align="center">
   <img src="src/main/resources/FIA.png" alt="FIA Logo" width="120">
-  <h1>FIA: 荧光图像配准工具 (v3.0.0)</h1>
+  <h1>FIA: 荧光图像配准工具 (v3.2.0)</h1>
   
   <p>
     <strong>专为 ImageJ/Fiji 打造的双引擎、抗干扰运动校正插件</strong>
@@ -8,7 +8,7 @@
 
   <p align="center">
     <a href="https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases">
-      <img src="https://img.shields.io/badge/release-v3.0.0-blue.svg" alt="Release">
+      <img src="https://img.shields.io/badge/release-v3.2.0-blue.svg" alt="Release">
     </a>    
     <a href="https://doi.org/10.5281/zenodo.18211241">
       <img src="https://zenodo.org/badge/DOI/10.5281/zenodo.18211241.svg" alt="DOI">
@@ -26,7 +26,7 @@
 
 **FIA (Fluorescence Image Aligner)** 是一款专为荧光显微成像（如钙成像、电压成像）设计的 ImageJ/Fiji 配准插件。
 
-**v3.0.0 里程碑版本**引入了革命性的 **“双引擎架构”**，完美融合了 OpenCV 的高精度与经典算法的高鲁棒性，能够解决从**亚像素级微颤**到**剧烈样本漂移**的各类运动伪影问题。
+**v3.2.0 里程碑版本**引入了革命性的 **“双引擎架构”**，完美融合了 OpenCV 的高精度与经典算法的高鲁棒性，能够解决从**亚像素级微颤**到**剧烈样本漂移**的各类运动伪影问题。
 
 <div align="center">
 
@@ -34,7 +34,7 @@
 
 </div>
 
-## ✨ v3.0.0 核心特性
+## ✨ v3.2.0 核心特性
 
 * **🚀 双引擎核心 (Dual-Engine)**：
     * **OpenCV ECC (默认)**：基于增强相关系数算法，提供亚像素级精度，支持旋转校正。适合高质量的功能成像数据。
@@ -46,7 +46,7 @@
 
 ## 📥 安装方法
 
-1.  在 [Releases 页面](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases) 下载最新的 **`FIA-3.0.0.jar`**。
+1.  在 [Releases 页面](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner/releases) 下载最新的 **`FIA-3.2.0.jar`**。
 2.  将 `.jar` 文件直接拖入 **Fiji** 主窗口（或复制到 `Fiji.app/plugins/` 目录）。
 3.  **重启 Fiji**。
 
@@ -85,7 +85,7 @@
 
 如果您在研究中使用了 FIA，请引用：
 
-> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.0.0).* Zenodo. https://doi.org/10.5281/zenodo.18211241
+> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.2.0).* Zenodo. https://doi.org/10.5281/zenodo.18218148
 
 **开发者**: Dr. Kui Wang
 **团队/出品**: [www.cns.ac.cn](http://www.cns.ac.cn)
