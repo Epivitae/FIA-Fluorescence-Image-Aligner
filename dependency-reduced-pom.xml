@@ -5,7 +5,25 @@
   <artifactId>FIA</artifactId>
   <name>FIA Image Aligner</name>
   <version>3.1.0</version>
-  <description>Portable version with Modern UI and Optical Flow</description>
+  <description>Robust Motion Correction for ImageJ/Fiji. Features Dual-Engine architecture (OpenCV ECC + Legacy Stabilizer) and Dense Flow for non-rigid registration.</description>
+  <url>https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner</url>
+  <developers>
+    <developer>
+      <id>kuiwang</id>
+      <name>Kui Wang</name>
+      <email>k@cns.ac.cn</email>
+      <organization>Center for Excellence in Brain Science and Intelligence Technology, CAS</organization>
+      <roles>
+        <role>Lead Developer</role>
+        <role>Maintainer</role>
+      </roles>
+      <timezone>+8</timezone>
+    </developer>
+  </developers>
+  <organization>
+    <name>Institute of Neuroscience (ION), CAS</name>
+    <url>http://www.cns.ac.cn</url>
+  </organization>
   <build>
     <resources>
       <resource>
