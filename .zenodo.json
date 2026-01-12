@@ -1,6 +1,6 @@
 {
-  "title": "Fluorescence Image Aligner (FIA): Robust Motion Correction with Dense Flow for ImageJ/Fiji (v3.2.0)",
-  "description": "<p><strong>FIA (Fluorescence Image Aligner) v3.2.0</strong> is a major update introducing the <strong>Dense Flow Engine</strong>, a state-of-the-art non-rigid registration method designed specifically for low-SNR biological time-lapse microscopy.</p><p><strong>v3.2.0 Highlights: The \"Dense Flow\" Update</strong><br>This release addresses the critical challenge of aligning noisy fluorescence data (e.g., Calcium/Voltage imaging) by introducing Temporal Averaging and Contrast Enhancement (CLAHE) into the motion estimation pipeline.</p><p><strong>Key Features:</strong></p><ul><li><strong>🚀 New \"Dense Flow\" Engine (Non-Rigid):</strong><ul><li><strong>Super Reference:</strong> Eliminates the \"floating anchor\" problem by averaging <em>N</em> frames (user-definable Ref Depth) to create a noise-free reference target.</li><li><strong>Feature Enhancement:</strong> Internally applies <strong>CLAHE</strong> (Contrast Limited Adaptive Histogram Equalization) to reveal tissue structure in dark/low-contrast regions before calculating flow.</li><li><strong>Robustness:</strong> Significantly outperforms standard Optical Flow on noisy, in-vivo brain imaging datasets.</li></ul></li><li><strong>🔬 Scientific Integrity:</strong><ul><li><strong>Navigation vs. Transport:</strong> Motion vectors are calculated using the enhanced (blurred/CLAHE) images, but the transformation is applied to the <strong>original raw data</strong> using high-precision cubic interpolation.</li><li><strong>Quantitative Safe:</strong> Ensures that pixel intensity values (DN) are preserved for accurate <strong>&Delta;F/F</strong> analysis.</li></ul></li><li><strong>⚓ Dual-Engine Core:</strong><ul><li><strong>OpenCV ECC:</strong> Remains the gold standard for sub-pixel <strong>Rigid/Affine</strong> alignment (Rotation + Translation).</li><li><strong>Legacy Stabilizer:</strong> A fallback kernel based on Kang Li's Lucas-Kanade algorithm for systems without OpenCV or for large-displacement stabilization.</li></ul></li><li><strong>🧠 Smart UI:</strong> Parameter panels now dynamically adapt to the selected mode, revealing advanced settings (Flow WinSize, PolyN) only when needed.</li></ul>",
+  "title": "Fluorescence Image Aligner (FIA): Robust Motion Correction with Dense Flow for ImageJ/Fiji (v3.2.1)",
+  "description": "<p><strong>FIA (Fluorescence Image Aligner) v3.2.1</strong> is a major update...</p><p><strong>v3.2.1 Highlights...</strong></p>",
   "creators": [
     {
       "name": "Wang, Kui",
@@ -20,13 +20,7 @@
     "bioimage-analysis",
     "image-registration",
     "motion-correction",
-    "dense-flow",
-    "non-rigid-registration",
-    "clahe",
-    "temporal-averaging",
-    "calcium-imaging",
-    "fluorescence-microscopy",
-    "opencv"
+    "dense-flow"
   ],
   "upload_type": "software",
   "related_identifiers": [
