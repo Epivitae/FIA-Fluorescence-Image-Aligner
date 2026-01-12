@@ -1,0 +1,32 @@
+{
+  "title": "Fluorescence Image Aligner (FIA): Robust Motion Correction with Dense Flow for ImageJ/Fiji (v{{VERSION}})",
+  "description": "<p><strong>FIA (Fluorescence Image Aligner) v{{VERSION}}</strong> is a major update...</p><p><strong>v{{VERSION}} Highlights...</strong></p>",
+  "creators": [
+    {
+      "name": "Wang, Kui",
+      "affiliation": "Center for Excellence in Brain Science and Intelligence Technology (Institute of Neuroscience), Chinese Academy of Sciences",
+      "orcid": "0000-0002-9436-3632"
+    }
+  ],
+  "access_right": "open",
+  "license": {
+    "id": "MIT"
+  },
+  "keywords": [
+    "imagej",
+    "fiji",
+    "imagej-plugin",
+    "scientific-software",
+    "bioimage-analysis",
+    "image-registration",
+    "motion-correction",
+    "dense-flow"
+  ],
+  "upload_type": "software",
+  "related_identifiers": [
+    {
+      "relation": "isSupplementTo",
+      "identifier": "https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner"
+    }
+  ]
+}
