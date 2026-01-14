@@ -4,7 +4,7 @@
   <groupId>com.github.epivitae</groupId>
   <artifactId>FIA</artifactId>
   <name>FIA Image Aligner</name>
-  <version>3.2.3</version>
+  <version>3.2.4</version>
   <description>Robust Motion Correction for ImageJ/Fiji. Features Dual-Engine architecture (OpenCV ECC + Legacy Stabilizer) and Dense Flow for non-rigid registration.</description>
   <url>https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner</url>
   <developers>
