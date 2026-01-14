@@ -127,7 +127,7 @@ If you use FIA in your research, please cite:
   version = {v3.1.0},
   year = {2026},
   url = {[https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner](https://github.com/Epivitae/FIA-Fluorescence-Image-Aligner)},
-  doi = {10.5281/zenodo.18206932}
+  doi = {10.5281/zenodo.18206931}
 }
 ```
 

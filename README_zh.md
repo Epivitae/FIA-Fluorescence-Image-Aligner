@@ -85,7 +85,7 @@
 
 如果您在研究中使用了 FIA，请引用：
 
-> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.2.0).* Zenodo. https://doi.org/10.5281/zenodo.18218148
+> **Wang, K. (2026).** *FIA: Fluorescence Image Aligner - Robust Motion Correction for ImageJ/Fiji (v3.2.0).* Zenodo. https://doi.org/10.5281/zenodo.18206931
 
 **开发者**: Dr. Kui Wang
 **团队/出品**: [www.cns.ac.cn](http://www.cns.ac.cn)
