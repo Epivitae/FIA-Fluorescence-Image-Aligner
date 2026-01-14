@@ -67,7 +67,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>FIA_v${project.version}</finalName>
+		<finalName>FIA_Aligner_v${project.version}</finalName>
 		
 		<resources>
 			<resource>
